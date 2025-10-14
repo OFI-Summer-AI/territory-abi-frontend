@@ -1,0 +1,92 @@
+[
+    {
+      "id": "center-1",
+      "name": "Centro Usaquén",
+      "address": "Carrera 7 #127-35, Usaquén",
+      "lat": 4.7110,
+      "lng": -74.0721,
+      "capacity_kg": 50000,
+      "active": true
+    },
+    {
+      "id": "center-2",
+      "name": "Centro Chicó",
+      "address": "Calle 100 #15-45, Chicó",
+      "lat": 4.6897,
+      "lng": -74.0547,
+      "capacity_kg": 45000,
+      "active": true
+    },
+    {
+      "id": "center-3",
+      "name": "Centro Suba",
+      "address": "Avenida Suba #145-89, Suba",
+      "lat": 4.6950,
+      "lng": -74.0950,
+      "capacity_kg": 40000,
+      "active": true
+    },
+    {
+      "id": "center-4",
+      "name": "Centro Cedritos",
+      "address": "Autopista Norte #138-24, Cedritos",
+      "lat": 4.7050,
+      "lng": -74.0450,
+      "capacity_kg": 38000,
+      "active": true
+    },
+    {
+      "id": "center-5",
+      "name": "Centro Chapinero Alto",
+      "address": "Carrera 13 #68-52, Chapinero Alto",
+      "lat": 4.7000,
+      "lng": -74.0650,
+      "capacity_kg": 30000,
+      "active": true
+    },
+    {
+      "id": "center-6",
+      "name": "Centro Country",
+      "address": "Carrera 15 #140-78, Country",
+      "lat": 4.7180,
+      "lng": -74.0680,
+      "capacity_kg": 35000,
+      "active": true
+    },
+    {
+      "id": "center-7",
+      "name": "Centro Rosales",
+      "address": "Carrera 7 #116-45, Rosales",
+      "lat": 4.7080,
+      "lng": -74.0580,
+      "capacity_kg": 32000,
+      "active": true
+    },
+    {
+      "id": "center-8",
+      "name": "Centro Santa Bárbara",
+      "address": "Carrera 30 #110-67, Santa Bárbara",
+      "lat": 4.6920,
+      "lng": -74.0720,
+      "capacity_kg": 28000,
+      "active": true
+    },
+    {
+      "id": "center-9",
+      "name": "Centro Toberín",
+      "address": "Calle 166 #52-34, Toberín",
+      "lat": 4.6880,
+      "lng": -74.0820,
+      "capacity_kg": 26000,
+      "active": true
+    },
+    {
+      "id": "center-10",
+      "name": "Centro Chico Norte",
+      "address": "Carrera 11 #120-23, Chico Norte",
+      "lat": 4.7020,
+      "lng": -74.0600,
+      "capacity_kg": 33000,
+      "active": true
+    }
+  ]

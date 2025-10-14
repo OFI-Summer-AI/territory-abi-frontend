@@ -1,0 +1,348 @@
+[
+    {
+      "id": "route-1",
+      "center_id": "center-1",
+      "vehicle_id": "vehicle-1",
+      "date": "2025-01-10",
+      "status": "completed",
+      "stops": [
+        {
+          "customer_id": "cust-1",
+          "sequence": 1,
+          "estimated_arrival": "08:30",
+          "estimated_duration_min": 15,
+          "order_kg": 450
+        },
+        {
+          "customer_id": "cust-2",
+          "sequence": 2,
+          "estimated_arrival": "09:00",
+          "estimated_duration_min": 10,
+          "order_kg": 120
+        },
+        {
+          "customer_id": "cust-3",
+          "sequence": 3,
+          "estimated_arrival": "09:30",
+          "estimated_duration_min": 12,
+          "order_kg": 280
+        },
+        {
+          "customer_id": "cust-5",
+          "sequence": 4,
+          "estimated_arrival": "10:00",
+          "estimated_duration_min": 15,
+          "order_kg": 320
+        }
+      ],
+      "estimated_km": 18.5,
+      "estimated_time_min": 120,
+      "capacity_util_pct": 85,
+      "actual_km": 19.2,
+      "actual_time_min": 135
+    },
+    {
+      "id": "route-2",
+      "center_id": "center-2",
+      "vehicle_id": "vehicle-2",
+      "date": "2025-01-10",
+      "status": "completed",
+      "stops": [
+        {
+          "customer_id": "cust-6",
+          "sequence": 1,
+          "estimated_arrival": "08:00",
+          "estimated_duration_min": 20,
+          "order_kg": 520
+        },
+        {
+          "customer_id": "cust-7",
+          "sequence": 2,
+          "estimated_arrival": "08:45",
+          "estimated_duration_min": 18,
+          "order_kg": 410
+        },
+        {
+          "customer_id": "cust-8",
+          "sequence": 3,
+          "estimated_arrival": "09:30",
+          "estimated_duration_min": 22,
+          "order_kg": 680
+        }
+      ],
+      "estimated_km": 22.3,
+      "estimated_time_min": 150,
+      "capacity_util_pct": 92,
+      "actual_km": 23.1,
+      "actual_time_min": 158
+    },
+    {
+      "id": "route-3",
+      "center_id": "center-3",
+      "vehicle_id": "vehicle-3",
+      "date": "2025-01-10",
+      "status": "in_progress",
+      "stops": [
+        {
+          "customer_id": "cust-11",
+          "sequence": 1,
+          "estimated_arrival": "09:00",
+          "estimated_duration_min": 12,
+          "order_kg": 180
+        },
+        {
+          "customer_id": "cust-12",
+          "sequence": 2,
+          "estimated_arrival": "09:30",
+          "estimated_duration_min": 15,
+          "order_kg": 340
+        },
+        {
+          "customer_id": "cust-14",
+          "sequence": 3,
+          "estimated_arrival": "10:15",
+          "estimated_duration_min": 10,
+          "order_kg": 150
+        }
+      ],
+      "estimated_km": 16.8,
+      "estimated_time_min": 105,
+      "capacity_util_pct": 78
+    },
+    {
+      "id": "route-4",
+      "center_id": "center-6",
+      "vehicle_id": "vehicle-6",
+      "date": "2025-01-10",
+      "status": "planned",
+      "stops": [
+        {
+          "customer_id": "cust-16",
+          "sequence": 1,
+          "estimated_arrival": "08:30",
+          "estimated_duration_min": 20,
+          "order_kg": 580
+        },
+        {
+          "customer_id": "cust-17",
+          "sequence": 2,
+          "estimated_arrival": "09:15",
+          "estimated_duration_min": 18,
+          "order_kg": 420
+        },
+        {
+          "customer_id": "cust-18",
+          "sequence": 3,
+          "estimated_arrival": "10:00",
+          "estimated_duration_min": 10,
+          "order_kg": 135
+        },
+        {
+          "customer_id": "cust-19",
+          "sequence": 4,
+          "estimated_arrival": "10:30",
+          "estimated_duration_min": 12,
+          "order_kg": 260
+        }
+      ],
+      "estimated_km": 20.5,
+      "estimated_time_min": 140,
+      "capacity_util_pct": 88
+    },
+    {
+      "id": "route-5",
+      "center_id": "center-7",
+      "vehicle_id": "vehicle-7",
+      "date": "2025-01-10",
+      "status": "planned",
+      "stops": [
+        {
+          "customer_id": "cust-22",
+          "sequence": 1,
+          "estimated_arrival": "08:00",
+          "estimated_duration_min": 16,
+          "order_kg": 380
+        },
+        {
+          "customer_id": "cust-24",
+          "sequence": 2,
+          "estimated_arrival": "08:45",
+          "estimated_duration_min": 12,
+          "order_kg": 210
+        }
+      ],
+      "estimated_km": 12.4,
+      "estimated_time_min": 85,
+      "capacity_util_pct": 65
+    },
+    {
+      "id": "route-6",
+      "center_id": "center-8",
+      "vehicle_id": "vehicle-8",
+      "date": "2025-01-10",
+      "status": "completed",
+      "stops": [
+        {
+          "customer_id": "cust-26",
+          "sequence": 1,
+          "estimated_arrival": "07:30",
+          "estimated_duration_min": 18,
+          "order_kg": 490
+        },
+        {
+          "customer_id": "cust-27",
+          "sequence": 2,
+          "estimated_arrival": "08:15",
+          "estimated_duration_min": 14,
+          "order_kg": 310
+        },
+        {
+          "customer_id": "cust-28",
+          "sequence": 3,
+          "estimated_arrival": "09:00",
+          "estimated_duration_min": 10,
+          "order_kg": 165
+        }
+      ],
+      "estimated_km": 15.7,
+      "estimated_time_min": 110,
+      "capacity_util_pct": 82,
+      "actual_km": 16.3,
+      "actual_time_min": 118
+    },
+    {
+      "id": "route-7",
+      "center_id": "center-9",
+      "vehicle_id": "vehicle-9",
+      "date": "2025-01-10",
+      "status": "in_progress",
+      "stops": [
+        {
+          "customer_id": "cust-31",
+          "sequence": 1,
+          "estimated_arrival": "08:00",
+          "estimated_duration_min": 16,
+          "order_kg": 350
+        },
+        {
+          "customer_id": "cust-32",
+          "sequence": 2,
+          "estimated_arrival": "08:45",
+          "estimated_duration_min": 18,
+          "order_kg": 440
+        },
+        {
+          "customer_id": "cust-33",
+          "sequence": 3,
+          "estimated_arrival": "09:30",
+          "estimated_duration_min": 16,
+          "order_kg": 380
+        }
+      ],
+      "estimated_km": 19.2,
+      "estimated_time_min": 130,
+      "capacity_util_pct": 87
+    },
+    {
+      "id": "route-8",
+      "center_id": "center-10",
+      "vehicle_id": "vehicle-10",
+      "date": "2025-01-10",
+      "status": "planned",
+      "stops": [
+        {
+          "customer_id": "cust-37",
+          "sequence": 1,
+          "estimated_arrival": "09:00",
+          "estimated_duration_min": 15,
+          "order_kg": 320
+        },
+        {
+          "customer_id": "cust-38",
+          "sequence": 2,
+          "estimated_arrival": "09:45",
+          "estimated_duration_min": 10,
+          "order_kg": 140
+        },
+        {
+          "customer_id": "cust-40",
+          "sequence": 3,
+          "estimated_arrival": "10:15",
+          "estimated_duration_min": 12,
+          "order_kg": 270
+        }
+      ],
+      "estimated_km": 14.3,
+      "estimated_time_min": 95,
+      "capacity_util_pct": 75
+    },
+    {
+      "id": "route-9",
+      "center_id": "center-4",
+      "vehicle_id": "vehicle-4",
+      "date": "2025-01-10",
+      "status": "completed",
+      "stops": [
+        {
+          "customer_id": "cust-41",
+          "sequence": 1,
+          "estimated_arrival": "07:00",
+          "estimated_duration_min": 25,
+          "order_kg": 820
+        },
+        {
+          "customer_id": "cust-42",
+          "sequence": 2,
+          "estimated_arrival": "08:00",
+          "estimated_duration_min": 28,
+          "order_kg": 950
+        }
+      ],
+      "estimated_km": 25.6,
+      "estimated_time_min": 160,
+      "capacity_util_pct": 95,
+      "actual_km": 26.8,
+      "actual_time_min": 172
+    },
+    {
+      "id": "route-10",
+      "center_id": "center-5",
+      "vehicle_id": "vehicle-5",
+      "date": "2025-01-10",
+      "status": "planned",
+      "stops": [
+        {
+          "customer_id": "cust-46",
+          "sequence": 1,
+          "estimated_arrival": "08:30",
+          "estimated_duration_min": 8,
+          "order_kg": 95
+        },
+        {
+          "customer_id": "cust-47",
+          "sequence": 2,
+          "estimated_arrival": "09:00",
+          "estimated_duration_min": 10,
+          "order_kg": 160
+        },
+        {
+          "customer_id": "cust-49",
+          "sequence": 3,
+          "estimated_arrival": "09:30",
+          "estimated_duration_min": 12,
+          "order_kg": 280
+        },
+        {
+          "customer_id": "cust-50",
+          "sequence": 4,
+          "estimated_arrival": "10:00",
+          "estimated_duration_min": 10,
+          "order_kg": 125
+        }
+      ],
+      "estimated_km": 11.2,
+      "estimated_time_min": 90,
+      "capacity_util_pct": 68
+    }
+  ]
+  
