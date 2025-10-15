@@ -7,6 +7,7 @@
       "lng": -74.0621,
       "center_id": "center-1",
       "avg_order_kg": 450,
+      "avg_order_hl": 100,
       "frequency": "daily",
       "priority": "high",
       "active": true
@@ -19,6 +20,7 @@
       "lng": -74.0556,
       "center_id": "center-1",
       "avg_order_kg": 120,
+      "avg_order_hl": 20,
       "frequency": "daily",
       "priority": "high",
       "active": true
@@ -31,6 +33,7 @@
       "lng": -74.0656,
       "center_id": "center-1",
       "avg_order_kg": 280,
+      "avg_order_hl": 60,
       "frequency": "daily",
       "priority": "medium",
       "active": true
@@ -43,6 +46,7 @@
       "lng": -74.0726,
       "center_id": "center-1",
       "avg_order_kg": 85,
+      "avg_order_hl": 15,
       "frequency": "weekly",
       "priority": "low",
       "active": true
@@ -55,6 +59,7 @@
       "lng": -74.0586,
       "center_id": "center-1",
       "avg_order_kg": 320,
+      "avg_order_hl": 70,
       "frequency": "daily",
       "priority": "high",
       "active": true
@@ -67,6 +72,7 @@
       "lng": -74.0647,
       "center_id": "center-2",
       "avg_order_kg": 520,
+      "avg_order_hl": 120,
       "frequency": "daily",
       "priority": "high",
       "active": true
@@ -79,6 +85,7 @@
       "lng": -74.0547,
       "center_id": "center-2",
       "avg_order_kg": 410,
+      "avg_order_hl": 90,
       "frequency": "daily",
       "priority": "medium",
       "active": true
@@ -91,6 +98,7 @@
       "lng": -74.0597,
       "center_id": "center-2",
       "avg_order_kg": 680,
+      "avg_order_hl": 150,
       "frequency": "daily",
       "priority": "high",
       "active": true
@@ -103,6 +111,7 @@
       "lng": -74.0497,
       "center_id": "center-2",
       "avg_order_kg": 95,
+      "avg_order_hl": 20,
       "frequency": "weekly",
       "priority": "low",
       "active": true
@@ -115,6 +124,7 @@
       "lng": -74.0547,
       "center_id": "center-2",
       "avg_order_kg": 750,
+      "avg_order_hl": 170,
       "frequency": "biweekly",
       "priority": "medium",
       "active": true
@@ -127,6 +137,7 @@
       "lng": -74.0850,
       "center_id": "center-3",
       "avg_order_kg": 180,
+      "avg_order_hl": 40,
       "frequency": "daily",
       "priority": "medium",
       "active": true
@@ -139,6 +150,7 @@
       "lng": -74.0950,
       "center_id": "center-3",
       "avg_order_kg": 340,
+      "avg_order_hl": 80,
       "frequency": "daily",
       "priority": "high",
       "active": true
@@ -151,6 +163,7 @@
       "lng": -74.1020,
       "center_id": "center-3",
       "avg_order_kg": 220,
+      "avg_order_hl": 50,
       "frequency": "weekly",
       "priority": "low",
       "active": true
@@ -163,6 +176,7 @@
       "lng": -74.0900,
       "center_id": "center-3",
       "avg_order_kg": 150,
+      "avg_order_hl": 30,
       "frequency": "daily",
       "priority": "high",
       "active": true
@@ -175,6 +189,7 @@
       "lng": -74.1050,
       "center_id": "center-3",
       "avg_order_kg": 290,
+      "avg_order_hl": 70,
       "frequency": "weekly",
       "priority": "medium",
       "active": true
@@ -187,6 +202,7 @@
       "lng": -74.0480,
       "center_id": "center-6",
       "avg_order_kg": 580,
+      "avg_order_hl": 120,
       "frequency": "daily",
       "priority": "high",
       "active": true
@@ -199,6 +215,7 @@
       "lng": -74.0580,
       "center_id": "center-6",
       "avg_order_kg": 420,
+      "avg_order_hl": 100,
       "frequency": "daily",
       "priority": "medium",
       "active": true
@@ -211,6 +228,7 @@
       "lng": -74.0680,
       "center_id": "center-6",
       "avg_order_kg": 135,
+      "avg_order_hl": 30,
       "frequency": "daily",
       "priority": "high",
       "active": true
@@ -223,6 +241,7 @@
       "lng": -74.0530,
       "center_id": "center-6",
       "avg_order_kg": 260,
+      "avg_order_hl": 60,
       "frequency": "daily",
       "priority": "medium",
       "active": true
@@ -235,6 +254,7 @@
       "lng": -74.0630,
       "center_id": "center-6",
       "avg_order_kg": 190,
+      "avg_order_hl": 40,
       "frequency": "weekly",
       "priority": "low",
       "active": true
@@ -247,6 +267,7 @@
       "lng": -74.0480,
       "center_id": "center-7",
       "avg_order_kg": 110,
+      "avg_order_hl": 20,
       "frequency": "weekly",
       "priority": "low",
       "active": true
@@ -259,6 +280,7 @@
       "lng": -74.0580,
       "center_id": "center-7",
       "avg_order_kg": 380,
+      "avg_order_hl": 90,
       "frequency": "daily",
       "priority": "high",
       "active": true
@@ -271,6 +293,7 @@
       "lng": -74.0630,
       "center_id": "center-7",
       "avg_order_kg": 145,
+      "avg_order_hl": 30,
       "frequency": "biweekly",
       "priority": "low",
       "active": true
@@ -283,6 +306,7 @@
       "lng": -74.0530,
       "center_id": "center-7",
       "avg_order_kg": 210,
+      "avg_order_hl": 50,
       "frequency": "daily",
       "priority": "medium",
       "active": true
@@ -295,6 +319,7 @@
       "lng": -74.0480,
       "center_id": "center-7",
       "avg_order_kg": 95,
+      "avg_order_hl": 20,
       "frequency": "weekly",
       "priority": "low",
       "active": true
@@ -307,6 +332,7 @@
       "lng": -74.0820,
       "center_id": "center-8",
       "avg_order_kg": 490,
+      "avg_order_hl": 100,
       "frequency": "daily",
       "priority": "high",
       "active": true
@@ -319,6 +345,7 @@
       "lng": -74.0720,
       "center_id": "center-8",
       "avg_order_kg": 310,
+      "avg_order_hl": 70,
       "frequency": "daily",
       "priority": "medium",
       "active": true
@@ -331,6 +358,7 @@
       "lng": -74.0770,
       "center_id": "center-8",
       "avg_order_kg": 165,
+      "avg_order_hl": 30,
       "frequency": "daily",
       "priority": "high",
       "active": true
@@ -343,6 +371,7 @@
       "lng": -74.0670,
       "center_id": "center-8",
       "avg_order_kg": 240,
+      "avg_order_hl": 50,
       "frequency": "weekly",
       "priority": "medium",
       "active": true
@@ -355,6 +384,7 @@
       "lng": -74.0820,
       "center_id": "center-8",
       "avg_order_kg": 620,
+      "avg_order_hl": 120,
       "frequency": "biweekly",
       "priority": "low",
       "active": true
@@ -367,6 +397,7 @@
       "lng": -74.0920,
       "center_id": "center-9",
       "avg_order_kg": 350,
+      "avg_order_hl": 80,
       "frequency": "daily",
       "priority": "high",
       "active": true
@@ -379,6 +410,7 @@
       "lng": -74.0820,
       "center_id": "center-9",
       "avg_order_kg": 440,
+      "avg_order_hl": 100,
       "frequency": "daily",
       "priority": "medium",
       "active": true
@@ -391,6 +423,7 @@
       "lng": -74.0970,
       "center_id": "center-9",
       "avg_order_kg": 380,
+      "avg_order_hl": 90,
       "frequency": "daily",
       "priority": "medium",
       "active": true
@@ -403,6 +436,7 @@
       "lng": -74.0870,
       "center_id": "center-9",
       "avg_order_kg": 560,
+      "avg_order_hl": 120,
       "frequency": "weekly",
       "priority": "low",
       "active": true
@@ -415,6 +449,7 @@
       "lng": -74.0920,
       "center_id": "center-9",
       "avg_order_kg": 290,
+      "avg_order_hl": 70,
       "frequency": "daily",
       "priority": "medium",
       "active": true
@@ -427,6 +462,7 @@
       "lng": -74.0500,
       "center_id": "center-10",
       "avg_order_kg": 75,
+      "avg_order_hl": 15,
       "frequency": "monthly",
       "priority": "low",
       "active": true
@@ -439,6 +475,7 @@
       "lng": -74.0600,
       "center_id": "center-10",
       "avg_order_kg": 320,
+      "avg_order_hl": 70,
       "frequency": "daily",
       "priority": "high",
       "active": true
@@ -451,6 +488,7 @@
       "lng": -74.0550,
       "center_id": "center-10",
       "avg_order_kg": 140,
+      "avg_order_hl": 30,
       "frequency": "daily",
       "priority": "high",
       "active": true
@@ -463,6 +501,7 @@
       "lng": -74.0650,
       "center_id": "center-10",
       "avg_order_kg": 85,
+      "avg_order_hl": 15,
       "frequency": "weekly",
       "priority": "low",
       "active": true
@@ -475,6 +514,7 @@
       "lng": -74.0600,
       "center_id": "center-10",
       "avg_order_kg": 270,
+      "avg_order_hl": 60,
       "frequency": "daily",
       "priority": "medium",
       "active": true
@@ -487,6 +527,7 @@
       "lng": -74.0350,
       "center_id": "center-4",
       "avg_order_kg": 820,
+      "avg_order_hl": 150,
       "frequency": "daily",
       "priority": "high",
       "active": true
@@ -499,6 +540,7 @@
       "lng": -74.0400,
       "center_id": "center-4",
       "avg_order_kg": 950,
+      "avg_order_hl": 200,
       "frequency": "daily",
       "priority": "high",
       "active": true
@@ -511,6 +553,7 @@
       "lng": -74.0350,
       "center_id": "center-4",
       "avg_order_kg": 680,
+      "avg_order_hl": 150,
       "frequency": "daily",
       "priority": "high",
       "active": true
@@ -523,6 +566,7 @@
       "lng": -74.0500,
       "center_id": "center-4",
       "avg_order_kg": 540,
+      "avg_order_hl": 120,
       "frequency": "daily",
       "priority": "medium",
       "active": true
@@ -535,6 +579,7 @@
       "lng": -74.0450,
       "center_id": "center-4",
       "avg_order_kg": 310,
+      "avg_order_hl": 70,
       "frequency": "daily",
       "priority": "high",
       "active": true
@@ -547,6 +592,7 @@
       "lng": -74.0550,
       "center_id": "center-5",
       "avg_order_kg": 95,
+      "avg_order_hl": 20,
       "frequency": "daily",
       "priority": "medium",
       "active": true
@@ -559,6 +605,7 @@
       "lng": -74.0600,
       "center_id": "center-5",
       "avg_order_kg": 160,
+      "avg_order_hl": 40,
       "frequency": "daily",
       "priority": "medium",
       "active": true
@@ -571,6 +618,7 @@
       "lng": -74.0650,
       "center_id": "center-5",
       "avg_order_kg": 220,
+      "avg_order_hl": 50,
       "frequency": "weekly",
       "priority": "low",
       "active": true
@@ -583,6 +631,7 @@
       "lng": -74.0580,
       "center_id": "center-5",
       "avg_order_kg": 280,
+      "avg_order_hl": 70,
       "frequency": "daily",
       "priority": "medium",
       "active": true
@@ -595,6 +644,7 @@
       "lng": -74.0670,
       "center_id": "center-5",
       "avg_order_kg": 125,
+      "avg_order_hl": 30,
       "frequency": "daily",
       "priority": "high",
       "active": true

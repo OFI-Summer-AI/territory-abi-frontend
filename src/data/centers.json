@@ -6,6 +6,7 @@
       "lat": 4.7110,
       "lng": -74.0721,
       "capacity_kg": 50000,
+      "capacity_hl": 10000,
       "active": true
     },
     {
@@ -15,6 +16,7 @@
       "lat": 4.6897,
       "lng": -74.0547,
       "capacity_kg": 45000,
+      "capacity_hl": 9000,
       "active": true
     },
     {
@@ -24,6 +26,7 @@
       "lat": 4.6950,
       "lng": -74.0950,
       "capacity_kg": 40000,
+      "capacity_hl": 8000,
       "active": true
     },
     {
@@ -33,6 +36,7 @@
       "lat": 4.7050,
       "lng": -74.0450,
       "capacity_kg": 38000,
+      "capacity_hl": 7600,
       "active": true
     },
     {
@@ -42,6 +46,7 @@
       "lat": 4.7000,
       "lng": -74.0650,
       "capacity_kg": 30000,
+      "capacity_hl": 6000,
       "active": true
     },
     {
@@ -51,6 +56,7 @@
       "lat": 4.7180,
       "lng": -74.0680,
       "capacity_kg": 35000,
+      "capacity_hl": 7000,
       "active": true
     },
     {
@@ -60,6 +66,7 @@
       "lat": 4.7080,
       "lng": -74.0580,
       "capacity_kg": 32000,
+      "capacity_hl": 6400,
       "active": true
     },
     {
@@ -69,6 +76,7 @@
       "lat": 4.6920,
       "lng": -74.0720,
       "capacity_kg": 28000,
+      "capacity_hl": 5600,
       "active": true
     },
     {
@@ -78,6 +86,7 @@
       "lat": 4.6880,
       "lng": -74.0820,
       "capacity_kg": 26000,
+      "capacity_hl": 5200,
       "active": true
     },
     {
@@ -87,6 +96,7 @@
       "lat": 4.7020,
       "lng": -74.0600,
       "capacity_kg": 33000,
+      "capacity_hl": 6600,
       "active": true
     }
   ]

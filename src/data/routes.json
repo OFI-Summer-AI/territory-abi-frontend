@@ -11,33 +11,38 @@
           "sequence": 1,
           "estimated_arrival": "08:30",
           "estimated_duration_min": 15,
-          "order_kg": 450
+          "order_kg": 450,
+          "order_hl": 100
         },
         {
           "customer_id": "cust-2",
           "sequence": 2,
           "estimated_arrival": "09:00",
           "estimated_duration_min": 10,
-          "order_kg": 120
+          "order_kg": 120,
+          "order_hl": 20
         },
         {
           "customer_id": "cust-3",
           "sequence": 3,
           "estimated_arrival": "09:30",
           "estimated_duration_min": 12,
-          "order_kg": 280
+          "order_kg": 280,
+          "order_hl": 60
         },
         {
           "customer_id": "cust-5",
           "sequence": 4,
           "estimated_arrival": "10:00",
           "estimated_duration_min": 15,
-          "order_kg": 320
+          "order_kg": 320,
+          "order_hl": 70
         }
       ],
       "estimated_km": 18.5,
       "estimated_time_min": 120,
       "capacity_util_pct": 85,
+      "capacity_util_pct_hl": 90,
       "actual_km": 19.2,
       "actual_time_min": 135
     },
@@ -53,26 +58,30 @@
           "sequence": 1,
           "estimated_arrival": "08:00",
           "estimated_duration_min": 20,
-          "order_kg": 520
+          "order_kg": 520,
+          "order_hl": 120
         },
         {
           "customer_id": "cust-7",
           "sequence": 2,
           "estimated_arrival": "08:45",
           "estimated_duration_min": 18,
-          "order_kg": 410
+          "order_kg": 410,
+          "order_hl": 90
         },
         {
           "customer_id": "cust-8",
           "sequence": 3,
           "estimated_arrival": "09:30",
           "estimated_duration_min": 22,
-          "order_kg": 680
+          "order_kg": 680,
+          "order_hl": 150
         }
       ],
       "estimated_km": 22.3,
       "estimated_time_min": 150,
       "capacity_util_pct": 92,
+      "capacity_util_pct_hl": 95,
       "actual_km": 23.1,
       "actual_time_min": 158
     },
@@ -88,26 +97,30 @@
           "sequence": 1,
           "estimated_arrival": "09:00",
           "estimated_duration_min": 12,
-          "order_kg": 180
+          "order_kg": 180,
+          "order_hl": 30
         },
         {
           "customer_id": "cust-12",
           "sequence": 2,
           "estimated_arrival": "09:30",
           "estimated_duration_min": 15,
-          "order_kg": 340
+          "order_kg": 340,
+          "order_hl": 50
         },
         {
           "customer_id": "cust-14",
           "sequence": 3,
           "estimated_arrival": "10:15",
           "estimated_duration_min": 10,
-          "order_kg": 150
+          "order_kg": 150,
+          "order_hl": 70
         }
       ],
       "estimated_km": 16.8,
       "estimated_time_min": 105,
-      "capacity_util_pct": 78
+      "capacity_util_pct": 78,
+      "capacity_util_pct_hl": 85
     },
     {
       "id": "route-4",
@@ -121,33 +134,38 @@
           "sequence": 1,
           "estimated_arrival": "08:30",
           "estimated_duration_min": 20,
-          "order_kg": 580
+          "order_kg": 580,
+          "order_hl": 120
         },
         {
           "customer_id": "cust-17",
           "sequence": 2,
           "estimated_arrival": "09:15",
           "estimated_duration_min": 18,
-          "order_kg": 420
+          "order_kg": 420,
+          "order_hl": 100
         },
         {
           "customer_id": "cust-18",
           "sequence": 3,
           "estimated_arrival": "10:00",
           "estimated_duration_min": 10,
-          "order_kg": 135
+          "order_kg": 135,
+          "order_hl": 30
         },
         {
           "customer_id": "cust-19",
           "sequence": 4,
           "estimated_arrival": "10:30",
           "estimated_duration_min": 12,
-          "order_kg": 260
+          "order_kg": 260,
+          "order_hl": 60
         }
       ],
       "estimated_km": 20.5,
       "estimated_time_min": 140,
-      "capacity_util_pct": 88
+      "capacity_util_pct": 88,
+      "capacity_util_pct_hl": 92
     },
     {
       "id": "route-5",
@@ -161,19 +179,22 @@
           "sequence": 1,
           "estimated_arrival": "08:00",
           "estimated_duration_min": 16,
-          "order_kg": 380
+          "order_kg": 380,
+          "order_hl": 90
         },
         {
           "customer_id": "cust-24",
           "sequence": 2,
           "estimated_arrival": "08:45",
           "estimated_duration_min": 12,
-          "order_kg": 210
+          "order_kg": 210,
+          "order_hl": 50
         }
       ],
       "estimated_km": 12.4,
       "estimated_time_min": 85,
-      "capacity_util_pct": 65
+      "capacity_util_pct": 65,
+      "capacity_util_pct_hl": 70
     },
     {
       "id": "route-6",
@@ -187,26 +208,30 @@
           "sequence": 1,
           "estimated_arrival": "07:30",
           "estimated_duration_min": 18,
-          "order_kg": 490
+          "order_kg": 490,
+          "order_hl": 120
         },
         {
           "customer_id": "cust-27",
           "sequence": 2,
           "estimated_arrival": "08:15",
           "estimated_duration_min": 14,
-          "order_kg": 310
+          "order_kg": 310,
+          "order_hl": 80
         },
         {
           "customer_id": "cust-28",
           "sequence": 3,
           "estimated_arrival": "09:00",
           "estimated_duration_min": 10,
-          "order_kg": 165
+          "order_kg": 165,
+          "order_hl": 40
         }
       ],
       "estimated_km": 15.7,
       "estimated_time_min": 110,
       "capacity_util_pct": 82,
+      "capacity_util_pct_hl": 88,
       "actual_km": 16.3,
       "actual_time_min": 118
     },
@@ -222,26 +247,30 @@
           "sequence": 1,
           "estimated_arrival": "08:00",
           "estimated_duration_min": 16,
-          "order_kg": 350
+          "order_kg": 350,
+          "order_hl": 80
         },
         {
           "customer_id": "cust-32",
           "sequence": 2,
           "estimated_arrival": "08:45",
           "estimated_duration_min": 18,
-          "order_kg": 440
+          "order_kg": 440,
+          "order_hl": 100
         },
         {
           "customer_id": "cust-33",
           "sequence": 3,
           "estimated_arrival": "09:30",
           "estimated_duration_min": 16,
-          "order_kg": 380
+          "order_kg": 380,
+          "order_hl": 90
         }
       ],
       "estimated_km": 19.2,
       "estimated_time_min": 130,
-      "capacity_util_pct": 87
+      "capacity_util_pct": 87,
+      "capacity_util_pct_hl": 92
     },
     {
       "id": "route-8",
@@ -255,26 +284,30 @@
           "sequence": 1,
           "estimated_arrival": "09:00",
           "estimated_duration_min": 15,
-          "order_kg": 320
+          "order_kg": 320,
+          "order_hl": 80
         },
         {
           "customer_id": "cust-38",
           "sequence": 2,
           "estimated_arrival": "09:45",
           "estimated_duration_min": 10,
-          "order_kg": 140
+          "order_kg": 140,
+          "order_hl": 30
         },
         {
           "customer_id": "cust-40",
           "sequence": 3,
           "estimated_arrival": "10:15",
           "estimated_duration_min": 12,
-          "order_kg": 270
+          "order_kg": 270,
+          "order_hl": 60
         }
       ],
       "estimated_km": 14.3,
       "estimated_time_min": 95,
-      "capacity_util_pct": 75
+      "capacity_util_pct": 75,
+      "capacity_util_pct_hl": 80
     },
     {
       "id": "route-9",
@@ -288,19 +321,22 @@
           "sequence": 1,
           "estimated_arrival": "07:00",
           "estimated_duration_min": 25,
-          "order_kg": 820
+          "order_kg": 820,
+          "order_hl": 150
         },
         {
           "customer_id": "cust-42",
           "sequence": 2,
           "estimated_arrival": "08:00",
           "estimated_duration_min": 28,
-          "order_kg": 950
+          "order_kg": 950,
+          "order_hl": 200
         }
       ],
       "estimated_km": 25.6,
       "estimated_time_min": 160,
       "capacity_util_pct": 95,
+      "capacity_util_pct_hl": 100,
       "actual_km": 26.8,
       "actual_time_min": 172
     },
@@ -316,33 +352,38 @@
           "sequence": 1,
           "estimated_arrival": "08:30",
           "estimated_duration_min": 8,
-          "order_kg": 95
+          "order_kg": 95,
+          "order_hl": 20
         },
         {
           "customer_id": "cust-47",
           "sequence": 2,
           "estimated_arrival": "09:00",
           "estimated_duration_min": 10,
-          "order_kg": 160
+          "order_kg": 160,
+          "order_hl": 40
         },
         {
           "customer_id": "cust-49",
           "sequence": 3,
           "estimated_arrival": "09:30",
           "estimated_duration_min": 12,
-          "order_kg": 280
+          "order_kg": 280,
+          "order_hl": 70
         },
         {
           "customer_id": "cust-50",
           "sequence": 4,
           "estimated_arrival": "10:00",
           "estimated_duration_min": 10,
-          "order_kg": 125
+          "order_kg": 125,
+          "order_hl": 30
         }
       ],
       "estimated_km": 11.2,
       "estimated_time_min": 90,
-      "capacity_util_pct": 68
+      "capacity_util_pct": 68,
+      "capacity_util_pct_hl": 75
     }
   ]
   
