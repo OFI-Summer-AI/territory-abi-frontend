@@ -19,6 +19,10 @@ export async function getCustomers(params?: {
   return dataService.getCustomers(params)
 }
 
+export async function getAllCustomers(): Promise<Customer[]> {
+  return dataService.getAllCustomers()
+}
+
 export async function getRoutes(params?: { date?: string; centerId?: string }): Promise<Route[]> {
   return dataService.getRoutes(params)
 }

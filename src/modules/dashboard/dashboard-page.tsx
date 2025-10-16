@@ -3,7 +3,7 @@ import { KpiCard } from "@/modules/dashboard/components/kpi-card"
 import { RoutesTable } from "@/modules/dashboard/components/routes-table"
 import { RouteDetailPanel } from "@/modules/dashboard/components/route-detail-panel"
 import { Button } from "@/shared/ui/button"
-import { getCenters, getCustomers, getRoutes, getKpis } from "@/modules/lib/api"
+import { getCenters, getAllCustomers, getRoutes, getKpis } from "@/modules/lib/api"
 import { useAppStore } from "@/modules/lib/store"
 import type { Center, Customer, Route, KpiSummary } from "@/modules/lib/types"
 import { Map, Table, Truck, Users, Gauge, Clock, Beer } from "lucide-react"
@@ -23,13 +23,13 @@ export default function DashboardPage() {
       try {
         const [centersData, customersData, routesData, kpisData] = await Promise.all([
           getCenters(),
-          getCustomers(),
+          getAllCustomers(),
           getRoutes({ date: "2025-01-10" }),
           getKpis("2025-01-10"),
         ])
 
         setCenters(centersData)
-        setCustomers(customersData.data)
+        setCustomers(customersData)
         setRoutes(routesData)
         setKpis(kpisData)
       } catch (error) {

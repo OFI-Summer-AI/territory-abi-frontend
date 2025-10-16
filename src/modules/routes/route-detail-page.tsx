@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
-import { getRoute, getCustomers } from "@/modules/lib/api"
+import { getRoute } from "@/modules/lib/api"
 import type { Route, Center, Customer } from "@/modules/lib/types"
 import { ArrowLeft, CheckCircle, Clock, Package, MapPin, Beer } from "lucide-react"
 
@@ -21,10 +21,13 @@ export default function RouteDetailPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [routeData, customersData] = await Promise.all([getRoute(routeId), getCustomers()])
-
+        const [routeData] = await Promise.all([getRoute(routeId)])
         setRoute(routeData)
-        setCustomers(customersData.data)
+        // Use enriched customers from route stops for accuracy in detail view
+        const enriched = routeData.stops
+          .map((s: any) => s.customer)
+          .filter((c: any): c is Customer => Boolean(c))
+        setCustomers(enriched)
       } catch (error) {
         console.error("[v0] Error loading route details:", error)
       } finally {

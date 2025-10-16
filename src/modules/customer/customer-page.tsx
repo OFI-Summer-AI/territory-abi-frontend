@@ -8,6 +8,7 @@ import { getCustomer, getCenters } from "@/modules/lib/api"
 import type { Customer, Center } from "@/modules/lib/types"
 import { ArrowLeft, Beer, TrendingUp } from "lucide-react"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { PredictiveForecast } from "@/modules/customer/predictive-forecast"
 
 export default function CustomerDetailPage() {
   const params = useParams()
@@ -95,7 +96,7 @@ export default function CustomerDetailPage() {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={customer.history}>
+                  <LineChart data={formatHistoryWithLast12Months(customer.history)}>
                     <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.25 0.02 240)" />
                     <XAxis dataKey="month" stroke="oklch(0.65 0.01 240)" />
                     <YAxis stroke="oklch(0.65 0.01 240)"  />
@@ -133,52 +134,7 @@ export default function CustomerDetailPage() {
               </CardContent>
             </Card>
 
-            {/* Prediction */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Demand Prediction</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between rounded-lg border bg-muted/50 p-4">
-                    <div>
-                      <div className="text-sm text-muted-foreground">Next Month Deliveries</div>
-                      <div className="text-2xl font-bold">{customer.prediction.next_month_deliveries}</div>
-                    </div>
-                    <TrendingUp className="h-8 w-8 text-chart-2" />
-                  </div>
-                  <div className="flex items-center justify-between rounded-lg border bg-muted/50 p-4">
-                    <div>
-                      <div className="text-sm text-muted-foreground">Next Month Hectoliters</div>
-                      <div className="text-2xl font-bold">{customer.prediction.next_month_deliveries * customer.avg_order_hl}</div>
-                    </div>
-                    <Beer className="h-8 w-8 text-chart-3" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="rounded-lg border p-4">
-                      <div className="text-sm text-muted-foreground">Confidence</div>
-                      <div className="text-xl font-bold">{Math.round(customer.prediction.confidence * 100)}%</div>
-                      <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
-                        <div
-                          className="h-full bg-blue-400"
-                          style={{ width: `${customer.prediction.confidence * 100}%` }}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="rounded-lg border p-4">
-                      <div className="text-sm text-muted-foreground">Trend</div>
-                      <div className="text-xl font-bold capitalize">{customer.prediction.trend}</div>
-                    </div>
-                  </div>
-
-                  <p className="text-sm text-muted-foreground">
-                    Based on historical data and seasonal patterns, we predict this customer will require approximately{" "}
-                    {customer.prediction.next_month_deliveries} deliveries next month.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            <PredictiveForecast customer={customer} />
           </div>
 
           {/* Sidebar */}
@@ -258,8 +214,82 @@ export default function CustomerDetailPage() {
                 </div>
               </CardContent>
             </Card>
+            {/* Prediction */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Demand Prediction</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between rounded-lg border bg-muted/50 p-4">
+                    <div>
+                      <div className="text-sm text-muted-foreground">Next Month Deliveries</div>
+                      <div className="text-2xl font-bold">{customer.prediction.next_month_deliveries}</div>
+                    </div>
+                    <TrendingUp className="h-8 w-8 text-chart-2" />
+                  </div>
+                  <div className="flex items-center justify-between rounded-lg border bg-muted/50 p-4">
+                    <div>
+                      <div className="text-sm text-muted-foreground">Next Month Hectoliters</div>
+                      <div className="text-2xl font-bold">{customer.prediction.next_month_deliveries * customer.avg_order_hl}</div>
+                    </div>
+                    <Beer className="h-8 w-8 text-chart-3" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="rounded-lg border p-4">
+                      <div className="text-sm text-muted-foreground">Confidence</div>
+                      <div className="text-xl font-bold">{Math.round(customer.prediction.confidence * 100)}%</div>
+                      <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
+                        <div
+                          className="h-full bg-blue-400"
+                          style={{ width: `${customer.prediction.confidence * 100}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="rounded-lg border p-4">
+                      <div className="text-sm text-muted-foreground">Trend</div>
+                      <div className="text-xl font-bold capitalize">{customer.prediction.trend}</div>
+                    </div>
+                  </div>
+
+                  <p className="text-sm text-muted-foreground">
+                    Based on historical data and seasonal patterns, we predict this customer will require approximately{" "}
+                    {customer.prediction.next_month_deliveries} deliveries next month.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </>
   )
+}
+
+function formatHistoryWithLast12Months(
+  history: Array<{ month: string; deliveries: number; avg_kg: number; avg_hl: number }>,
+) {
+  // Build labels for the last 12 months ending with current month
+  const now = new Date()
+  const labels: string[] = []
+  const cursor = new Date(now.getFullYear(), now.getMonth(), 1)
+  // We want 12 labels: from 11 months ago up to current month
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(cursor)
+    d.setMonth(cursor.getMonth() - i)
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, "0")
+    labels.push(`${y}-${m}`)
+  }
+
+  // Align existing history values (assumed length 12) to those labels
+  const values = history.slice(-12)
+  const padded = Array.from({ length: 12 }, (_, idx) => values[idx] || values[values.length - 1])
+
+  return padded.map((h, idx) => ({
+    month: labels[idx],
+    deliveries: h.deliveries,
+    avg_kg: h.avg_kg,
+    avg_hl: h.avg_hl,
+  }))
 }

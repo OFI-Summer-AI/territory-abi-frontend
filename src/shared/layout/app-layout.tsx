@@ -1,5 +1,6 @@
 import { Outlet, NavLink } from "react-router-dom"
 import { Button } from "@/shared/ui/button"
+import { ChatModal } from "@/shared/ui/chat-modal"
 
 function AppLayout() {
   return (
@@ -30,6 +31,7 @@ function AppLayout() {
                 Reports
               </NavLink>
             </Button>
+            <ChatModal />
           </nav>
         </div>
       </header>

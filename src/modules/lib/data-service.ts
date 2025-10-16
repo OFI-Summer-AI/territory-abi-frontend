@@ -40,6 +40,11 @@ export const dataService = {
     }
   },
 
+  // Return all customers without pagination for map rendering and global views
+  getAllCustomers(): Customer[] {
+    return customers
+  },
+
   getRoutes(params?: { date?: string; centerId?: string }): Route[] {
     let filtered = routes
 
@@ -81,7 +86,7 @@ export const dataService = {
 
     // Generate mock history data
     const history = Array.from({ length: 12 }, (_, i) => ({
-      month: new Date(2024, i, 1).toISOString().slice(0, 7),
+      month: new Date(2025, i, 1).toISOString().slice(0, 7),
       deliveries: Math.floor(Math.random() * 20) + 5,
       avg_kg: customer.avg_order_kg + Math.random() * 50 - 25,
       avg_hl: customer.avg_order_hl + Math.random() * 20 - 10,
