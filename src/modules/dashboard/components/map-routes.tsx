@@ -117,7 +117,7 @@ export function MapRoutes({
         })
       })
       .catch((error) => {
-        console.error("[v0] Error loading Leaflet:", error)
+        console.error("Error loading Leaflet:", error)
       })
 
     return () => {

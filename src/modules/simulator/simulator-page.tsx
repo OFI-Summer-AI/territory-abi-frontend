@@ -25,7 +25,7 @@ export default function SimulatorPage() {
         setCenters(centersData)
         setCustomers(customersData.data)
       } catch (error) {
-        console.error("[v0] Error loading simulator data:", error)
+        console.error("Error loading simulator data:", error)
       } finally {
         setLoading(false)
       }
@@ -50,7 +50,7 @@ export default function SimulatorPage() {
       })
       setSimulationResult(result)
     } catch (error) {
-      console.error("[v0] Error simulating routes:", error)
+      console.error("Error simulating routes:", error)
       alert("Error generating route proposal. Please try again.")
     } finally {
       setSimulating(false)

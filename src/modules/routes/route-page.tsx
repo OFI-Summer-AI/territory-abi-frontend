@@ -24,7 +24,7 @@ export default function RoutesPage() {
         const centersData = await getCenters()
         setCenters(centersData)
       } catch (error) {
-        console.error("[v0] Error loading centers:", error)
+        console.error("Error loading centers:", error)
       }
     }
 
@@ -41,7 +41,7 @@ export default function RoutesPage() {
         })
         setRoutes(routesData)
       } catch (error) {
-        console.error("[v0] Error loading routes:", error)
+        console.error("Error loading routes:", error)
       } finally {
         setLoading(false)
       }

@@ -29,7 +29,7 @@ export default function RouteDetailPage() {
           .filter((c: any): c is Customer => Boolean(c))
         setCustomers(enriched)
       } catch (error) {
-        console.error("[v0] Error loading route details:", error)
+        console.error("[Error loading route details:", error)
       } finally {
         setLoading(false)
       }

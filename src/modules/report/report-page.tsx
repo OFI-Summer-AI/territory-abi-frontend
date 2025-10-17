@@ -28,7 +28,7 @@ export default function ReportsPage() {
         setRoutes(routesData)
         setKpis(kpisData)
       } catch (error) {
-        console.error("[v0] Error loading reports data:", error)
+        console.error("Error loading reports data:", error)
       } finally {
         setLoading(false)
       }
