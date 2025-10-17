@@ -31,7 +31,7 @@ export function PredictiveForecast({ customer }: PredictiveForecastProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Predictive Forecast</CardTitle>
+        <CardTitle>Demand Prediction</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="mb-4 grid gap-3 md:grid-cols-3">
