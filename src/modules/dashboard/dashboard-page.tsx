@@ -73,11 +73,11 @@ export default function DashboardPage() {
                 trendValue="+5%"
               />
               <KpiCard
-                label="Avg Capacity HL"
-                value={`${kpis.avg_capacity_util_hl}%`}
-                icon={<Beer className="h-4 w-4" />}
+                label="Coverage Percentage"
+                value="84%"
+                icon={<Map className="h-4 w-4" />}
                 trend="up"
-                trendValue="+5%"
+                trendValue="80%"
               />
               <KpiCard
                 label="Total Distance"
