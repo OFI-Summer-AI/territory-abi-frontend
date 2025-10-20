@@ -128,92 +128,90 @@ export const dataService = {
       throw new Error("Center not found")
     }
 
-    // Group customers into routes (max 8000kg per vehicle)
-    const maxCapacity = 8000
-    const maxCapacityHL = 4000
+    // Group customers into exactly 10 routes with 10-15 stops each
     const proposedRoutes: Route[] = []
-    let currentLoad = 0
-    let currentStops: Route["stops"] = []
-    let routeIndex = 1
+    const targetRoutes = 10
+    const minStopsPerRoute = 10
+    const maxStopsPerRoute = 15
+    
+    // Calculate total stops needed and distribute customers accordingly
+    const totalCustomers = selectedCustomers.length
+    const targetStopsPerRoute = Math.max(minStopsPerRoute, Math.min(maxStopsPerRoute, Math.floor(totalCustomers / targetRoutes)))
 
-    selectedCustomers.forEach((customer, idx) => {
-      if (currentLoad + customer.avg_order_kg > maxCapacity) {
-        // Create new route
-        const estimatedKm = 10 + currentStops.length * 3.5
-        const estimatedTime = 60 + currentStops.length * 15
+    for (let routeIndex = 0; routeIndex < targetRoutes; routeIndex++) {
+      // Determine stops for this route (between 10-15)
+      const stopsForThisRoute = Math.min(
+        Math.max(minStopsPerRoute, targetStopsPerRoute + Math.floor(Math.random() * 3) - 1), // ±1 variation
+        maxStopsPerRoute,
+        totalCustomers - (routeIndex * targetStopsPerRoute) // Don't exceed remaining customers
+      )
+      
+      const startIndex = routeIndex * targetStopsPerRoute
+      const endIndex = Math.min(startIndex + stopsForThisRoute, totalCustomers)
+      const routeCustomers = selectedCustomers.slice(startIndex, endIndex)
+      
+      if (routeCustomers.length === 0) break
 
-        proposedRoutes.push({
-          id: `sim-route-${routeIndex}`,
-          center_id,
-          vehicle_id: `vehicle-sim-${routeIndex}`,
-          date,
-          status: "planned",
-          stops: currentStops,
-          estimated_km: estimatedKm,
-          estimated_time_min: estimatedTime,
-          capacity_util_pct: Math.round((currentLoad / maxCapacity) * 100),
-          capacity_util_pct_hl: Math.round((currentLoad / maxCapacityHL) * 100),
+      const currentStops: Route["stops"] = []
+
+      routeCustomers.forEach((customer, idx) => {
+        currentStops.push({
+          customer_id: customer.id,
+          sequence: idx + 1,
+          estimated_arrival: `${8 + Math.floor((routeIndex * 4 + idx * 0.5) % 12)}:${((routeIndex * 15 + idx * 30) % 60).toString().padStart(2, '0')}`,
+          estimated_duration_min: 10 + Math.floor(customer.avg_order_kg / 50),
+          order_kg: customer.avg_order_kg,
+          order_hl: customer.avg_order_hl,
         })
-
-        routeIndex++
-        currentLoad = 0
-        currentStops = []
-      }
-
-      currentStops.push({
-        customer_id: customer.id,
-        sequence: currentStops.length + 1,
-        estimated_arrival: `${8 + Math.floor(idx * 0.5)}:${(idx * 30) % 60}`,
-        estimated_duration_min: 10 + Math.floor(customer.avg_order_kg / 50),
-        order_kg: customer.avg_order_kg,
-        order_hl: customer.avg_order_hl,
       })
 
-      currentLoad += customer.avg_order_kg
-    })
-
-    // Add last route
-    if (currentStops.length > 0) {
-      const estimatedKm = 10 + currentStops.length * 3.5
-      const estimatedTime = 60 + currentStops.length * 15
+      // Calculate time to be between 4-8 hours (240-480 minutes)
+      const minTimeMinutes = 240 // 4 hours
+      const maxTimeMinutes = 480 // 8 hours
+      const estimatedTime = minTimeMinutes + Math.random() * (maxTimeMinutes - minTimeMinutes)
+      
+      // Calculate distance based on time (approximate 1 km per 3 minutes including stops)
+      const estimatedKm = (estimatedTime / 3) + Math.random() * 10
+      
+      // Ensure capacity utilization is between 90-100%
+      const targetCapacityPct = 90 + Math.random() * 10 // 90-100%
 
       proposedRoutes.push({
-        id: `sim-route-${routeIndex}`,
+        id: `sim-route-${(routeIndex + 1).toString().padStart(2, '0')}`,
         center_id,
-        vehicle_id: `vehicle-sim-${routeIndex}`,
+        vehicle_id: `vehicle-sim-${routeIndex + 1}`,
         date,
         status: "planned",
         stops: currentStops,
-        estimated_km: estimatedKm,
-        estimated_time_min: estimatedTime,
-        capacity_util_pct: Math.round((currentLoad / maxCapacity) * 100),
-        capacity_util_pct_hl: Math.round((currentLoad / maxCapacityHL) * 100),
+        estimated_km: Math.round(estimatedKm * 10) / 10,
+        estimated_time_min: Math.round(estimatedTime),
+        capacity_util_pct: Math.round(targetCapacityPct),
+        capacity_util_pct_hl: Math.round(targetCapacityPct * 0.95), // Keep HL for internal calculations but won't be displayed
       })
     }
 
-    // Calculate KPIs
+    // Calculate KPIs - ensure we always show optimization with 10 routes
     const totalKm = proposedRoutes.reduce((sum, r) => sum + r.estimated_km, 0)
     const totalTime = proposedRoutes.reduce((sum, r) => sum + r.estimated_time_min, 0)
-    const avgCapacity = proposedRoutes.reduce((sum, r) => sum + r.capacity_util_pct, 0) / proposedRoutes.length
-    const avgCapacityHL = proposedRoutes.reduce((sum, r) => sum + r.capacity_util_pct_hl, 0) / proposedRoutes.length
+    const avgCapacity = proposedRoutes.length > 0 ? proposedRoutes.reduce((sum, r) => sum + r.capacity_util_pct, 0) / proposedRoutes.length : 0
 
     const proposedKpis: KpiSummary = {
-      total_routes: proposedRoutes.length + 1,
+      total_routes: 10, // Always 10 optimized routes
       total_customers: selectedCustomers.length,
       avg_capacity_util: Math.round(avgCapacity),
       total_km: Math.round(totalKm * 10) / 10,
       total_time_hours: Math.round((totalTime / 60) * 10) / 10,
-      avg_capacity_util_hl: Math.round(avgCapacityHL),
+      avg_capacity_util_hl: Math.round(avgCapacity * 0.95), // Keep for compatibility but won't be displayed
     }
 
-    // Mock current KPIs (worse performance)
+    // Mock current KPIs (less efficient with more routes)
     const currentKpis: KpiSummary = {
-      total_routes: proposedRoutes.length + 1,
+      total_routes: 12, // Current has more routes
       total_customers: selectedCustomers.length,
-      avg_capacity_util: Math.round(avgCapacity * 0.85),
-      total_km: Math.round(totalKm * 1.15 * 10) / 10,
-      total_time_hours: Math.round((totalTime / 60) * 1.12 * 10) / 10,
-      avg_capacity_util_hl: Math.round(avgCapacityHL * 0.85),
+      avg_capacity_util: Math.round(avgCapacity * 0.75), // Much lower capacity utilization (75% of optimized)
+      total_km: Math.round(totalKm * 1.18 * 10) / 10, // More kilometers
+      total_time_hours: Math.round((totalTime / 60) * 1.15 * 10) / 10, // More time
+      avg_capacity_util_hl: Math.round(avgCapacity * 0.72), // Keep for compatibility
     }
 
     return {

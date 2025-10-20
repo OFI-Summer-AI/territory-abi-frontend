@@ -38,7 +38,6 @@ export function RoutesTable({ routes, onView, onSimulate }: RoutesTableProps) {
             <TableHead>Distance</TableHead>
             <TableHead>Time</TableHead>
             <TableHead>Capacity KG</TableHead>
-            <TableHead>Capacity HL</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -51,21 +50,13 @@ export function RoutesTable({ routes, onView, onSimulate }: RoutesTableProps) {
               </TableCell>
               <TableCell>{route.stops.length}</TableCell>
               <TableCell>{route.estimated_km} km</TableCell>
-              <TableCell>{Math.round(route.estimated_time_min / 60)} hrs</TableCell>
+              <TableCell>{(route.estimated_time_min / 60).toFixed(1)} hrs</TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
                   <div className="h-2 w-20 overflow-hidden rounded-full bg-muted">
                     <div className="h-full bg-blue-400" style={{ width: `${route.capacity_util_pct}%` }} />
                   </div>
                   <span className="text-sm text-muted-foreground">{route.capacity_util_pct}%</span>
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-20 overflow-hidden rounded-full bg-muted">
-                    <div className="h-full bg-blue-400" style={{ width: `${route.capacity_util_pct_hl}%` }} />
-                  </div>
-                  <span className="text-sm text-muted-foreground">{route.capacity_util_pct_hl}%</span>
                 </div>
               </TableCell>
               <TableCell className="text-right">

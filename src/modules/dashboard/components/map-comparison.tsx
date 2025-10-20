@@ -110,16 +110,16 @@ function MapView({ title, routes, customers, type, complianceResult }: MapViewPr
             </div>
           </div>
           
-          {/* Mock route indicators */}
+          {/* Mock route indicators - show all routes */}
           <div className="absolute inset-4">
-            {routes.slice(0, 6).map((route, index) => (
+            {routes.slice(0, 10).map((route, index) => (
               <div
                 key={route.id}
                 className="absolute w-3 h-3 rounded-full cursor-pointer transition-all hover:scale-150"
                 style={{
-                  backgroundColor: routeColors[index],
-                  left: `${20 + (index % 3) * 30}%`,
-                  top: `${20 + Math.floor(index / 3) * 40}%`,
+                  backgroundColor: routeColors[index % routeColors.length],
+                  left: `${15 + (index % 5) * 18}%`,
+                  top: `${15 + Math.floor(index / 5) * 35}%`,
                 }}
                 onClick={() => setSelectedRoute(selectedRoute === route.id ? null : route.id)}
               />
@@ -169,8 +169,8 @@ function MapView({ title, routes, customers, type, complianceResult }: MapViewPr
         {/* Route List */}
         <div className="space-y-2">
           <h4 className="font-medium text-sm">Routes ({routes.length})</h4>
-          <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
-            {routes.slice(0, 8).map((route, index) => (
+          <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
+            {routes.map((route, index) => (
               <div
                 key={route.id}
                 className={`flex items-center gap-2 p-2 rounded text-xs cursor-pointer transition-colors ${
@@ -180,7 +180,7 @@ function MapView({ title, routes, customers, type, complianceResult }: MapViewPr
               >
                 <div 
                   className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: routeColors[index] }}
+                  style={{ backgroundColor: routeColors[index % routeColors.length] }}
                 />
                 <span className="truncate">{route.id}</span>
                 <span className="text-muted-foreground">
@@ -215,7 +215,7 @@ export function MapComparison({ complianceResult, onClose }: MapComparisonProps)
   // Mock current routes (would come from API in real implementation)
   const currentRoutes: RouteType[] = [
     { 
-      id: "route-tuesday-1", 
+      id: "route-current-01", 
       date: "2025-01-15", 
       estimated_km: 45, 
       estimated_time_min: 180, 
@@ -227,7 +227,7 @@ export function MapComparison({ complianceResult, onClose }: MapComparisonProps)
       stops: [] 
     },
     { 
-      id: "route-tuesday-2", 
+      id: "route-current-02", 
       date: "2025-01-15", 
       estimated_km: 52, 
       estimated_time_min: 210, 
@@ -239,7 +239,7 @@ export function MapComparison({ complianceResult, onClose }: MapComparisonProps)
       stops: [] 
     },
     { 
-      id: "route-tuesday-3", 
+      id: "route-current-03", 
       date: "2025-01-15", 
       estimated_km: 38, 
       estimated_time_min: 160, 
@@ -251,7 +251,7 @@ export function MapComparison({ complianceResult, onClose }: MapComparisonProps)
       stops: [] 
     },
     { 
-      id: "route-wednesday-1", 
+      id: "route-current-04", 
       date: "2025-01-16", 
       estimated_km: 41, 
       estimated_time_min: 170, 
@@ -263,7 +263,7 @@ export function MapComparison({ complianceResult, onClose }: MapComparisonProps)
       stops: [] 
     },
     { 
-      id: "route-wednesday-2", 
+      id: "route-current-05", 
       date: "2025-01-16", 
       estimated_km: 47, 
       estimated_time_min: 190, 
@@ -271,6 +271,90 @@ export function MapComparison({ complianceResult, onClose }: MapComparisonProps)
       capacity_util_pct_hl: 79,
       center_id: "center-1",
       vehicle_id: "vehicle-5",
+      status: "planned",
+      stops: [] 
+    },
+    { 
+      id: "route-current-06", 
+      date: "2025-01-16", 
+      estimated_km: 55, 
+      estimated_time_min: 220, 
+      capacity_util_pct: 76, 
+      capacity_util_pct_hl: 73,
+      center_id: "center-1",
+      vehicle_id: "vehicle-6",
+      status: "planned",
+      stops: [] 
+    },
+    { 
+      id: "route-current-07", 
+      date: "2025-01-17", 
+      estimated_km: 43, 
+      estimated_time_min: 175, 
+      capacity_util_pct: 89, 
+      capacity_util_pct_hl: 86,
+      center_id: "center-1",
+      vehicle_id: "vehicle-7",
+      status: "planned",
+      stops: [] 
+    },
+    { 
+      id: "route-current-08", 
+      date: "2025-01-17", 
+      estimated_km: 49, 
+      estimated_time_min: 195, 
+      capacity_util_pct: 84, 
+      capacity_util_pct_hl: 81,
+      center_id: "center-1",
+      vehicle_id: "vehicle-8",
+      status: "planned",
+      stops: [] 
+    },
+    { 
+      id: "route-current-09", 
+      date: "2025-01-17", 
+      estimated_km: 36, 
+      estimated_time_min: 150, 
+      capacity_util_pct: 91, 
+      capacity_util_pct_hl: 87,
+      center_id: "center-1",
+      vehicle_id: "vehicle-9",
+      status: "planned",
+      stops: [] 
+    },
+    { 
+      id: "route-current-10", 
+      date: "2025-01-18", 
+      estimated_km: 51, 
+      estimated_time_min: 205, 
+      capacity_util_pct: 80, 
+      capacity_util_pct_hl: 77,
+      center_id: "center-1",
+      vehicle_id: "vehicle-10",
+      status: "planned",
+      stops: [] 
+    },
+    { 
+      id: "route-current-11", 
+      date: "2025-01-18", 
+      estimated_km: 44, 
+      estimated_time_min: 180, 
+      capacity_util_pct: 87, 
+      capacity_util_pct_hl: 84,
+      center_id: "center-1",
+      vehicle_id: "vehicle-11",
+      status: "planned",
+      stops: [] 
+    },
+    { 
+      id: "route-current-12", 
+      date: "2025-01-18", 
+      estimated_km: 39, 
+      estimated_time_min: 165, 
+      capacity_util_pct: 93, 
+      capacity_util_pct_hl: 89,
+      center_id: "center-1",
+      vehicle_id: "vehicle-12",
       status: "planned",
       stops: [] 
     },
