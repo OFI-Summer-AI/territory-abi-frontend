@@ -12,7 +12,11 @@
           "estimated_arrival": "08:30",
           "estimated_duration_min": 15,
           "order_kg": 450,
-          "order_hl": 100
+          "order_hl": 100,
+          "status": {
+            "executed": true,
+            "details": "Customer received the order"
+          }
         },
         {
           "customer_id": "cust-2",
@@ -20,7 +24,11 @@
           "estimated_arrival": "09:00",
           "estimated_duration_min": 10,
           "order_kg": 120,
-          "order_hl": 20
+          "order_hl": 20,
+          "status": {
+            "executed": true,
+            "details": "Customer received the order"
+          }
         },
         {
           "customer_id": "cust-3",
@@ -28,7 +36,11 @@
           "estimated_arrival": "09:30",
           "estimated_duration_min": 12,
           "order_kg": 280,
-          "order_hl": 60
+          "order_hl": 60,
+          "status": {
+            "executed": true,
+            "details": "Customer received the order"
+          }
         },
         {
           "customer_id": "cust-5",
@@ -36,7 +48,11 @@
           "estimated_arrival": "10:00",
           "estimated_duration_min": 15,
           "order_kg": 320,
-          "order_hl": 70
+          "order_hl": 70,
+          "status": {
+            "executed": false,
+            "details": "Customer not received the order is closed"
+          }
         }
       ],
       "estimated_km": 18.5,
