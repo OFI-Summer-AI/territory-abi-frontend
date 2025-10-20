@@ -4,6 +4,7 @@ import { SimulatorPanel } from "@/modules/dashboard/components/simulator-panel"
 import { KpiComparison } from "@/modules/dashboard/components/kpi-comparison"
 import { RoutesTable } from "@/modules/dashboard/components/routes-table"
 import { ComplianceAnalysis } from "@/modules/dashboard/components/compliance-analysis"
+import { MapComparison } from "@/modules/dashboard/components/map-comparison"
 import { Button } from "@/shared/ui/button"
 import { getCenters, simulateRoutes, simulateCompliance } from "@/modules/lib/api"
 import type { Center, SimulationResult, ComplianceSimulationResult, OptimizationSuggestion } from "@/modules/lib/types"
@@ -17,6 +18,7 @@ export default function SimulatorPage() {
   const [loading, setLoading] = useState(true)
   const [simulating, setSimulating] = useState(false)
   const [showCompliance, setShowCompliance] = useState(false)
+  const [showMapComparison, setShowMapComparison] = useState(false)
 
   useEffect(() => {
     async function loadData() {
@@ -62,8 +64,9 @@ export default function SimulatorPage() {
   }
 
   const handleViewMap = () => {
-    // TODO: Implement map view functionality
-    console.log('Opening map view...')
+    if (complianceResult) {
+      setShowMapComparison(true)
+    }
   }
 
   const handleApplySuggestions = (suggestions: OptimizationSuggestion[]) => {
@@ -191,6 +194,14 @@ export default function SimulatorPage() {
             )}
           </div>
         </div>
+
+        {/* Map Comparison Modal */}
+        {showMapComparison && complianceResult && (
+          <MapComparison
+            complianceResult={complianceResult}
+            onClose={() => setShowMapComparison(false)}
+          />
+        )}
       </>
   )
 }

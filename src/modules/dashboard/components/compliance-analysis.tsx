@@ -91,9 +91,9 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
             </div>
             <div className="space-y-2">
               <div className="text-2xl font-bold text-green-600">
-                ${impact_analysis.improvements.cost_savings_percentage.toFixed(0)}
+                {impact_analysis.improvements.efficiency_improvement_hl_km.toFixed(2)}
               </div>
-              <div className="text-sm text-muted-foreground">Cost Savings</div>
+              <div className="text-sm text-muted-foreground">HL/Km Improvement</div>
             </div>
           </div>
 
@@ -250,7 +250,7 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
                     <h4 className="font-medium">{suggestion.description}</h4>
                     <p className="text-sm text-muted-foreground mt-1">
                       Type: {suggestion.type.replace('_', ' ')} • 
-                      Cost: ${suggestion.implementation_cost}
+                      HL/Km: {suggestion.expected_benefit.efficiency_hl_km.toFixed(2)}
                     </p>
                   </div>
                   <Badge 
@@ -275,9 +275,9 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
                   </div>
                   <div>
                     <div className="font-medium text-green-600">
-                      ${suggestion.expected_benefit.cost_savings.toFixed(0)}
+                      {suggestion.expected_benefit.efficiency_hl_km.toFixed(2)}
                     </div>
-                    <div className="text-muted-foreground">Cost Savings</div>
+                    <div className="text-muted-foreground">HL/Km Efficiency</div>
                   </div>
                   <div>
                     <div className="font-medium">
@@ -361,8 +361,8 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
                         <span>{impact_analysis.before.compliance_rate.toFixed(1)}%</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Operational Cost:</span>
-                        <span>${impact_analysis.before.total_operational_cost.toFixed(0)}</span>
+                        <span>HL/Km Efficiency:</span>
+                        <span>{impact_analysis.before.avg_hl_km_efficiency.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Success Rate:</span>
@@ -380,9 +380,9 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Operational Cost:</span>
+                        <span>HL/Km Efficiency:</span>
                         <span className="text-green-600">
-                          ${impact_analysis.after.total_operational_cost.toFixed(0)}
+                          {impact_analysis.after.avg_hl_km_efficiency.toFixed(2)}
                         </span>
                       </div>
                       <div className="flex justify-between">

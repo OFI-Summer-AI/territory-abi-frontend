@@ -281,7 +281,7 @@ export const dataService = {
           avg_delivery_success_rate: 78.3,
           avg_frequency_adherence: 65.0,
           avg_delivery_time_performance: 82.5,
-          total_operational_cost: 25000
+          avg_hl_km_efficiency: 2.1
         },
         after: {
           total_clients: centerCustomers.length,
@@ -290,11 +290,11 @@ export const dataService = {
           avg_delivery_success_rate: 92.8,
           avg_frequency_adherence: 88.5,
           avg_delivery_time_performance: 94.2,
-          total_operational_cost: 23800
+          avg_hl_km_efficiency: 3.2
         },
         improvements: {
           delivery_success_rate_change: 14.5,
-          cost_savings_percentage: 4.8,
+          efficiency_improvement_hl_km: 1.1,
           frequency_compliance_improvement: 23.5,
           on_time_delivery_improvement: 11.7
         }
@@ -545,7 +545,7 @@ export const dataService = {
           delivery_success_improvement: 12.5,
           frequency_alignment: 8.0,
           time_reduction_hours: 2.5,
-          cost_savings: 800
+          efficiency_hl_km: 2.8
         },
         validation_status: 'validated'
       },
@@ -560,7 +560,7 @@ export const dataService = {
           delivery_success_improvement: 25.0,
           frequency_alignment: 15.0,
           time_reduction_hours: 0.5,
-          cost_savings: 450
+          efficiency_hl_km: 3.4
         },
         validation_status: 'validated'
       },
@@ -575,7 +575,7 @@ export const dataService = {
           delivery_success_improvement: 30.0,
           frequency_alignment: 12.0,
           time_reduction_hours: 0.3,
-          cost_savings: 380
+          efficiency_hl_km: 3.8
         },
         validation_status: 'validated'
       },
@@ -590,7 +590,7 @@ export const dataService = {
           delivery_success_improvement: 8.0,
           frequency_alignment: 12.0,
           time_reduction_hours: 1.0,
-          cost_savings: 300
+          efficiency_hl_km: 2.6
         },
         validation_status: 'validated'
       },
@@ -605,7 +605,7 @@ export const dataService = {
           delivery_success_improvement: 35.0,
           frequency_alignment: 18.0,
           time_reduction_hours: 0.8,
-          cost_savings: 520
+          efficiency_hl_km: 4.1
         },
         validation_status: 'needs_review'
       },
@@ -620,7 +620,7 @@ export const dataService = {
           delivery_success_improvement: 15.0,
           frequency_alignment: 6.0,
           time_reduction_hours: 4.0,
-          cost_savings: 1200
+          efficiency_hl_km: 3.0
         },
         validation_status: 'needs_review'
       },
@@ -635,7 +635,7 @@ export const dataService = {
           delivery_success_improvement: 10.0,
           frequency_alignment: 18.0,
           time_reduction_hours: 1.5,
-          cost_savings: 600
+          efficiency_hl_km: 2.9
         },
         validation_status: 'validated'
       },
@@ -650,7 +650,7 @@ export const dataService = {
           delivery_success_improvement: 28.0,
           frequency_alignment: 22.0,
           time_reduction_hours: 3.2,
-          cost_savings: 1100
+          efficiency_hl_km: 3.7
         },
         validation_status: 'needs_review'
       },
@@ -665,7 +665,7 @@ export const dataService = {
           delivery_success_improvement: 7.0,
           frequency_alignment: 5.0,
           time_reduction_hours: 0.8,
-          cost_savings: 200
+          efficiency_hl_km: 2.4
         },
         validation_status: 'validated'
       }

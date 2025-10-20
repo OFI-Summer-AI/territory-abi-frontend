@@ -91,7 +91,7 @@ export interface Center {
       delivery_success_improvement: number
       frequency_alignment: number
       time_reduction_hours: number
-      cost_savings: number
+      efficiency_hl_km: number
     }
     affected_routes: string[]
     validation_status: "validated" | "needs_review" | "conflicts"
@@ -105,7 +105,7 @@ export interface Center {
       after: ComplianceMetrics
       improvements: {
         delivery_success_rate_change: number
-        cost_savings_percentage: number
+        efficiency_improvement_hl_km: number
         frequency_compliance_improvement: number
         on_time_delivery_improvement: number
       }
@@ -126,7 +126,7 @@ export interface Center {
     avg_delivery_success_rate: number
     avg_frequency_adherence: number
     avg_delivery_time_performance: number
-    total_operational_cost: number
+    avg_hl_km_efficiency: number
   }
   
   export interface RouteStop {
