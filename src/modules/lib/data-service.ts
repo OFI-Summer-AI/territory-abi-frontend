@@ -1,5 +1,16 @@
 // Simple data service - direct access to mock data
-import type { Center, Customer, Route, KpiSummary, SimulationRequest, SimulationResult } from "./types"
+import type { 
+  Center, 
+  Customer, 
+  Route, 
+  KpiSummary, 
+  SimulationRequest, 
+  SimulationResult,
+  ComplianceSimulationResult,
+  NonCompliantClient,
+  OptimizationSuggestion,
+  ComplianceIssue
+} from "./types"
 import centersData from "@/data/centers.json"
 import customersData from "@/data/customers.json"
 import routesData from "@/data/routes.json"
@@ -107,10 +118,10 @@ export const dataService = {
   },
 
   simulateRoutes(request: SimulationRequest): SimulationResult {
-    const { customer_ids, center_id, date } = request
+    const { center_id, date } = request
 
     // Simple greedy clustering algorithm
-    const selectedCustomers = customers.filter((c) => customer_ids.includes(c.id))
+    const selectedCustomers = customers.filter((c) => c.center_id === center_id)
     const center = centers.find((c) => c.id === center_id)
 
     if (!center) {
@@ -187,8 +198,8 @@ export const dataService = {
     const avgCapacityHL = proposedRoutes.reduce((sum, r) => sum + r.capacity_util_pct_hl, 0) / proposedRoutes.length
 
     const proposedKpis: KpiSummary = {
-      total_routes: proposedRoutes.length,
-      total_customers: customer_ids.length,
+      total_routes: proposedRoutes.length + 1,
+      total_customers: selectedCustomers.length,
       avg_capacity_util: Math.round(avgCapacity),
       total_km: Math.round(totalKm * 10) / 10,
       total_time_hours: Math.round((totalTime / 60) * 10) / 10,
@@ -198,7 +209,7 @@ export const dataService = {
     // Mock current KPIs (worse performance)
     const currentKpis: KpiSummary = {
       total_routes: proposedRoutes.length + 1,
-      total_customers: customer_ids.length,
+      total_customers: selectedCustomers.length,
       avg_capacity_util: Math.round(avgCapacity * 0.85),
       total_km: Math.round(totalKm * 1.15 * 10) / 10,
       total_time_hours: Math.round((totalTime / 60) * 1.12 * 10) / 10,
@@ -241,5 +252,166 @@ export const dataService = {
       total_time_hours: Math.round((totalTime / 60) * 10) / 10,
       avg_capacity_util_hl: Math.round(avgCapacityHL),
     }
+  },
+
+  async simulateCompliance(centerId: string): Promise<ComplianceSimulationResult> {
+    // Simulate processing delay
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    
+    const center = centers.find(c => c.id === centerId)
+    if (!center) {
+      throw new Error("Center not found")
+    }
+
+    // Get customers for this center
+    const centerCustomers = customers.filter(c => c.center_id === centerId)
+    
+    // Generate mock compliance analysis
+    const nonCompliantClients = this.generateNonCompliantClients(centerCustomers)
+    const optimizationSuggestions = this.generateOptimizationSuggestions()
+    
+    return {
+      non_compliant_clients: nonCompliantClients,
+      optimization_suggestions: optimizationSuggestions,
+      impact_analysis: {
+        before: {
+          total_clients: centerCustomers.length,
+          compliant_clients: centerCustomers.length - nonCompliantClients.length,
+          compliance_rate: ((centerCustomers.length - nonCompliantClients.length) / centerCustomers.length) * 100,
+          avg_delivery_success_rate: 78.3,
+          avg_frequency_adherence: 65.0,
+          avg_delivery_time_performance: 82.5,
+          total_operational_cost: 25000
+        },
+        after: {
+          total_clients: centerCustomers.length,
+          compliant_clients: Math.min(centerCustomers.length, Math.round(centerCustomers.length * 0.95)),
+          compliance_rate: 95.0,
+          avg_delivery_success_rate: 92.8,
+          avg_frequency_adherence: 88.5,
+          avg_delivery_time_performance: 94.2,
+          total_operational_cost: 23800
+        },
+        improvements: {
+          delivery_success_rate_change: 14.5,
+          cost_savings_percentage: 4.8,
+          frequency_compliance_improvement: 23.5,
+          on_time_delivery_improvement: 11.7
+        }
+      },
+      proposed_routes: routes.slice(0, 3), // Mock some routes
+      affected_compliant_clients: [],
+      validation_results: {
+        no_negative_impact: true,
+        warnings: [],
+        recommendations: [
+          'Implement route optimization first as it has the highest ROI',
+          'Monitor customer satisfaction scores after schedule adjustments',
+          'Consider phased implementation to minimize disruption'
+        ]
+      }
+    }
+  },
+
+  generateNonCompliantClients(centerCustomers: Customer[]): NonCompliantClient[] {
+    // Select ~30% of customers as non-compliant
+    const nonCompliantCount = Math.ceil(centerCustomers.length * 0.3)
+    const selectedCustomers = centerCustomers.slice(0, nonCompliantCount)
+
+    return selectedCustomers.map((customer) => {
+      const deliveryHistory = customer.delivery_history || []
+      const successfulDeliveries = deliveryHistory.filter(d => d.status === 'delivered').length
+      const successRate = deliveryHistory.length > 0 ? (successfulDeliveries / deliveryHistory.length) * 100 : 0
+      
+      const issues: ComplianceIssue[] = []
+      
+      if (successRate < 90) {
+        issues.push({
+          type: 'delivery_success',
+          severity: successRate < 70 ? 'critical' : successRate < 80 ? 'high' : 'medium',
+          description: `Low delivery success rate: ${successRate.toFixed(1)}%`,
+          impact: `${Math.round(100 - successRate)}% of deliveries are failing, affecting customer satisfaction and revenue`,
+          metric_value: successRate,
+          target_value: 95
+        })
+      }
+
+      if (Math.random() > 0.7) {
+        issues.push({
+          type: 'frequency',
+          severity: 'medium',
+          description: 'Irregular delivery frequency',
+          impact: 'Customer is not receiving deliveries according to agreed schedule',
+          metric_value: 14,
+          target_value: 7
+        })
+      }
+
+      return {
+        customer,
+        current_metrics: {
+          delivery_success_rate: successRate,
+          avg_delivery_frequency_days: 7 + Math.floor(Math.random() * 14),
+          avg_delivery_delay_hours: 2 + Math.random() * 4,
+          last_delivery_date: deliveryHistory[0]?.date || '2024-01-01'
+        },
+        target_metrics: {
+          delivery_success_rate: 95,
+          target_frequency_days: 7,
+          max_delivery_delay_hours: 2
+        },
+        issues
+      }
+    })
+  },
+
+  generateOptimizationSuggestions(): OptimizationSuggestion[] {
+    return [
+      {
+        id: 'route-optimization-1',
+        client_id: 'customer-1',
+        type: 'route_change',
+        description: 'Optimize delivery routes to reduce travel time and increase success rate',
+        implementation_cost: 1500,
+        affected_routes: ['route-1', 'route-2', 'route-3'],
+        expected_benefit: {
+          delivery_success_improvement: 12.5,
+          frequency_alignment: 8.0,
+          time_reduction_hours: 2.5,
+          cost_savings: 800
+        },
+        validation_status: 'validated'
+      },
+      {
+        id: 'schedule-adjustment-1',
+        client_id: 'customer-2',
+        type: 'schedule_adjustment',
+        description: 'Adjust delivery schedules based on customer availability patterns',
+        implementation_cost: 500,
+        affected_routes: ['route-1', 'route-4'],
+        expected_benefit: {
+          delivery_success_improvement: 8.0,
+          frequency_alignment: 12.0,
+          time_reduction_hours: 1.0,
+          cost_savings: 300
+        },
+        validation_status: 'validated'
+      },
+      {
+        id: 'vehicle-reassignment-1',
+        client_id: 'customer-3',
+        type: 'vehicle_reassignment',
+        description: 'Reassign specialized vehicle to handle capacity demands',
+        implementation_cost: 5000,
+        affected_routes: ['route-2', 'route-3', 'route-5'],
+        expected_benefit: {
+          delivery_success_improvement: 15.0,
+          frequency_alignment: 6.0,
+          time_reduction_hours: 4.0,
+          cost_savings: 1200
+        },
+        validation_status: 'needs_review'
+      }
+    ]
   },
 }

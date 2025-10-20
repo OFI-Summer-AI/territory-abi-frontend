@@ -1,4 +1,4 @@
-import type { Center, Customer, Route, KpiSummary, SimulationRequest, SimulationResult } from "./types"
+import type { Center, Customer, Route, KpiSummary, SimulationRequest, SimulationResult, ComplianceSimulationResult } from "./types"
 import { dataService } from "./data-service"
 
 export async function getCenters(): Promise<Center[]> {
@@ -50,4 +50,8 @@ export async function simulateRoutes(request: SimulationRequest): Promise<Simula
 
 export async function getKpis(date?: string): Promise<KpiSummary> {
   return dataService.getKpis(date)
+}
+
+export async function simulateCompliance(centerId: string): Promise<ComplianceSimulationResult> {
+  return dataService.simulateCompliance(centerId)
 }
