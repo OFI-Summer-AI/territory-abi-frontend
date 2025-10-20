@@ -14,25 +14,25 @@ export function CustomerTable({ customers, onView }: CustomerTableProps) {
   
 
   const getEffectiveDeliveries = (customer: Customer) => {
-    const totalDeliveries = customer.delivery_history.length
-    const effectiveDeliveries = customer.delivery_history.filter(d => d.status === "delivered").length
+    const totalDeliveries = customer.delivery_history?.length ?? 0
+    const effectiveDeliveries = customer.delivery_history?.filter(d => d.status === "delivered").length ?? 0
     const ineffectiveDeliveries = totalDeliveries - effectiveDeliveries
     
     return { effective: effectiveDeliveries, ineffective: ineffectiveDeliveries }
   }
 
   const getDeliveryCompletionRate = (customer: Customer) => {
-    const totalDeliveries = customer.delivery_history.length
+    const totalDeliveries = customer.delivery_history?.length ?? 0
     if (totalDeliveries === 0) return 0
     
-    const completedDeliveries = customer.delivery_history.filter(d => d.status === "delivered").length
+    const completedDeliveries = customer.delivery_history?.filter(d => d.status === "delivered").length ?? 0
     return Math.round((completedDeliveries / totalDeliveries) * 100)
   }
 
   const getTotalHectolitersDelivered = (customer: Customer) => {
-    return customer.delivery_history.reduce((total, delivery) => {
+    return customer.delivery_history?.reduce((total, delivery) => {
       return total + delivery.delivered_hl
-    }, 0)
+    }, 0) ?? 0
   }
 
   const getPriorityColor = (priority: Customer["priority"]) => {
