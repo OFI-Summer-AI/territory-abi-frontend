@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import type { Center, Customer, Route } from "@/modules/lib/types"
 
 interface MapRoutesProps {
@@ -8,6 +8,41 @@ interface MapRoutesProps {
   mode?: "overview" | "detail"
   selectedRouteId?: string | null
   onRouteClick?: (routeId: string) => void
+}
+
+// Cache for OSRM routes
+const routeCache = new Map<string, [number, number][]>()
+
+// Function to get real route from OSRM
+async function getOSRMRoute(points: [number, number][]): Promise<[number, number][]> {
+  if (points.length < 2) return points
+
+  const cacheKey = points.map(p => `${p[0].toFixed(5)},${p[1].toFixed(5)}`).join('|')
+  
+  if (routeCache.has(cacheKey)) {
+    return routeCache.get(cacheKey)!
+  }
+
+  try {
+    const coords = points.map(p => `${p[1]},${p[0]}`).join(';')
+    const url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`
+    
+    const response = await fetch(url)
+    const data = await response.json()
+    
+    if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+      const routePoints = data.routes[0].geometry.coordinates.map(
+        (coord: number[]) => [coord[1], coord[0]] as [number, number]
+      )
+      
+      routeCache.set(cacheKey, routePoints)
+      return routePoints
+    }
+  } catch (error) {
+    console.warn('Error fetching OSRM route, falling back to straight line:', error)
+  }
+  
+  return points
 }
 
 export function MapRoutes({
@@ -20,12 +55,67 @@ export function MapRoutes({
 }: MapRoutesProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<any>(null)
+  const polylinesRef = useRef<Map<string, any>>(new Map())
+  const markersRef = useRef<any[]>([])
+  const [loadingRoutes, setLoadingRoutes] = useState(false)
 
   useEffect(() => {
     if (typeof window === "undefined" || !mapRef.current) return
 
+    let isMounted = true
+
+    // Add CSS styles for animations
+    const style = document.createElement('style')
+    style.textContent = `
+      @keyframes dash {
+        to {
+          stroke-dashoffset: -40;
+        }
+      }
+      
+      @keyframes pulse {
+        0%, 100% { 
+          opacity: 1; 
+          transform: scale(1);
+        }
+        50% { 
+          opacity: 0.7; 
+          transform: scale(1.1);
+        }
+      }
+
+      @keyframes glow {
+        0%, 100% { filter: drop-shadow(0 0 2px currentColor); }
+        50% { filter: drop-shadow(0 0 8px currentColor); }
+      }
+
+      .route-selected {
+        animation: dash 1s linear infinite;
+      }
+
+      .marker-pulse {
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      .marker-glow {
+        animation: glow 2s ease-in-out infinite;
+      }
+
+      .route-arrow {
+        transition: all 0.3s ease;
+      }
+
+      .leaflet-interactive:hover {
+        filter: brightness(1.2);
+        cursor: pointer;
+      }
+    `
+    document.head.appendChild(style)
+
     Promise.all([import("leaflet"), import("leaflet/dist/leaflet.css")])
-      .then(([L]) => {
+      .then(async ([L]) => {
+        if (!isMounted) return
+
         if (mapInstanceRef.current) {
           mapInstanceRef.current.remove()
         }
@@ -33,50 +123,63 @@ export function MapRoutes({
         const map = L.map(mapRef.current!).setView([4.6880, -74.0820], 12)
         mapInstanceRef.current = map
 
-        // Add tile layer
+        // Tile layer with optional dark style
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         }).addTo(map)
 
-        // Custom icons
+        // Enhanced custom icons
         const centerIcon = L.divIcon({
           className: "custom-center-icon",
-          html: '<div style="background: oklch(0.6 0.18 250); width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
-          iconSize: [16, 16],
-          iconAnchor: [8, 8],
-        })
-
-        const customerIcon = L.divIcon({
-          className: "custom-customer-icon",
-          html: '<div style="background: oklch(0.65 0.18 35); width: 10px; height: 10px; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 2px rgba(0,0,0,0.3);"></div>',
-          iconSize: [10, 10],
-          iconAnchor: [5, 5],
+          html: `<div style="
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            width: 24px; 
+            height: 24px; 
+            border-radius: 50%; 
+            border: 4px solid white; 
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5), 0 0 0 4px rgba(102, 126, 234, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+          " class="marker-glow">🏢</div>`,
+          iconSize: [24, 24],
+          iconAnchor: [12, 12],
         })
 
         // Add center markers
         centers.forEach((center) => {
-          L.marker([center.lat, center.lng], { icon: centerIcon })
+          const marker = L.marker([center.lat, center.lng], { icon: centerIcon })
             .addTo(map)
-            .bindPopup(`<strong>${center.name}</strong><br/>${center.address}`)
+            .bindPopup(`
+              <div style="font-family: system-ui; padding: 4px;">
+                <div style="font-weight: bold; font-size: 14px; margin-bottom: 4px;">🏢 ${center.name}</div>
+                <div style="color: #666; font-size: 12px;">${center.address}</div>
+              </div>
+            `)
+          markersRef.current.push(marker)
         })
 
-        // Add customer markers
-        customers.forEach((customer) => {
-          L.marker([customer.lat, customer.lng], { icon: customerIcon })
-            .addTo(map)
-            .bindPopup(`<strong>${customer.name}</strong><br/>${customer.address}`)
-        })
-
-        // Add route polylines
+        // Route colors - vibrant palette
         const routeColors = [
-          "oklch(0.6 0.18 250)",
-          "oklch(0.65 0.18 35)",
-          "oklch(0.6 0.15 180)",
-          "oklch(0.7 0.15 280)",
-          "oklch(0.5 0.12 320)",
+          { main: "#3b82f6", light: "#60a5fa" }, // Blue
+          { main: "#ef4444", light: "#f87171" }, // Red
+          { main: "#10b981", light: "#34d399" }, // Green
+          { main: "#f59e0b", light: "#fbbf24" }, // Orange
+          { main: "#8b5cf6", light: "#a78bfa" }, // Purple
+          { main: "#ec4899", light: "#f472b6" }, // Pink
+          { main: "#06b6d4", light: "#22d3ee" }, // Cyan
+          { main: "#84cc16", light: "#a3e635" }, // Lime
         ]
 
-        routes.forEach((route, idx) => {
+        polylinesRef.current.clear()
+        setLoadingRoutes(true)
+        
+        const routePromises = routes.map(async (route, idx) => {
+          if (!isMounted) return
+
           const routeCustomers = route.stops
             .map((stop) => customers.find((c) => c.id === stop.customer_id))
             .filter((c): c is Customer => c !== undefined)
@@ -86,47 +189,237 @@ export function MapRoutes({
           const center = centers.find((c) => c.id === route.center_id)
           if (!center) return
 
-          // Create polyline from center through all stops
-          const points: [number, number][] = [
+          const waypoints: [number, number][] = [
             [center.lat, center.lng],
             ...routeCustomers.map((c) => [c.lat, c.lng] as [number, number]),
           ]
 
-          const isSelected = selectedRouteId === route.id
-          const color = routeColors[idx % routeColors.length]
+          const routePoints = await getOSRMRoute(waypoints)
 
-          const polyline = L.polyline(points, {
-            color,
-            weight: isSelected ? 4 : 2,
-            opacity: isSelected ? 1 : 0.6,
+          if (!isMounted) return
+
+          const isSelected = selectedRouteId === route.id
+          const colorScheme = routeColors[idx % routeColors.length]
+
+          // Outer shadow
+          const shadow = L.polyline(routePoints, {
+            color: '#000',
+            weight: isSelected ? 12 : 8,
+            opacity: 0.15,
+            smoothFactor: 1,
+            lineCap: 'round',
+            lineJoin: 'round',
           }).addTo(map)
 
-          polyline.on("click", () => {
+          // White border
+          const outline = L.polyline(routePoints, {
+            color: '#fff',
+            weight: isSelected ? 10 : 6,
+            opacity: isSelected ? 0.9 : 0.7,
+            smoothFactor: 1,
+            lineCap: 'round',
+            lineJoin: 'round',
+          }).addTo(map)
+
+          // Main line with simulated gradient
+          const polyline = L.polyline(routePoints, {
+            color: colorScheme.main,
+            weight: isSelected ? 6 : 4,
+            opacity: isSelected ? 1 : 0.85,
+            smoothFactor: 1,
+            lineCap: 'round',
+            lineJoin: 'round',
+            className: isSelected ? 'route-selected' : '',
+            dashArray: isSelected ? '20, 10' : undefined,
+          }).addTo(map)
+
+          // Add numbered markers at each stop
+          routeCustomers.forEach((customer, stopIdx) => {
+            const stopNumber = stopIdx + 1
+            const stopIcon = L.divIcon({
+              className: 'custom-stop-icon',
+              html: `<div style="
+                background: ${colorScheme.main}; 
+                color: white; 
+                width: 28px; 
+                height: 28px; 
+                border-radius: 50%; 
+                border: 3px solid white;
+                box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                font-size: 13px;
+                font-family: system-ui;
+              " class="${isSelected ? 'marker-pulse' : ''}">${stopNumber}</div>`,
+              iconSize: [28, 28],
+              iconAnchor: [14, 14],
+            })
+
+            const marker = L.marker([customer.lat, customer.lng], { icon: stopIcon })
+              .addTo(map)
+              .bindPopup(`
+                <div style="font-family: system-ui; padding: 4px;">
+                  <div style="font-weight: bold; font-size: 13px; color: ${colorScheme.main}; margin-bottom: 4px;">
+                    Stop #${stopNumber}
+                  </div>
+                  <div style="font-weight: 600; margin-bottom: 2px;">${customer.name}</div>
+                  <div style="color: #666; font-size: 11px;">${customer.address}</div>
+                </div>
+              `)
+            
+            markersRef.current.push(marker)
+          })
+
+          // Add directional arrows using SVG markers
+          const arrowInterval = 100 // One arrow every 100 points
+          for (let i = arrowInterval; i < routePoints.length; i += arrowInterval) {
+            const point = routePoints[i]
+            const prevPoint = routePoints[i - 1]
+            
+            // Calculate rotation angle
+            const angle = Math.atan2(
+              point[0] - prevPoint[0],
+              point[1] - prevPoint[1]
+            ) * (180 / Math.PI)
+
+            const arrowIcon = L.divIcon({
+              className: 'route-arrow',
+              html: `<div style="
+                color: ${colorScheme.main}; 
+                font-size: ${isSelected ? '20px' : '16px'};
+                transform: rotate(${angle}deg);
+                filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3));
+              ">▲</div>`,
+              iconSize: [20, 20],
+              iconAnchor: [10, 10],
+            })
+
+            const arrowMarker = L.marker(point, { 
+              icon: arrowIcon,
+              interactive: false,
+            }).addTo(map)
+            
+            markersRef.current.push(arrowMarker)
+          }
+
+          // Events
+          const handleClick = () => {
             if (onRouteClick) {
               onRouteClick(route.id)
             }
-          })
+          }
 
-          polyline.bindPopup(
-            `<strong>Route ${route.id}</strong><br/>
-          Status: ${route.status}<br/>
-          Stops: ${route.stops.length}<br/>
-          Distance: ${route.estimated_km} km<br/>
-          Capacity: ${route.capacity_util_pct}%`,
-          )
+          const handleMouseOver = () => {
+            polyline.setStyle({ weight: isSelected ? 8 : 6, opacity: 1 })
+            outline.setStyle({ weight: isSelected ? 12 : 8 })
+          }
+
+          const handleMouseOut = () => {
+            polyline.setStyle({ 
+              weight: isSelected ? 6 : 4, 
+              opacity: isSelected ? 1 : 0.85 
+            })
+            outline.setStyle({ weight: isSelected ? 10 : 6 })
+          }
+
+          shadow.on("click", handleClick)
+          outline.on("click", handleClick)
+          polyline.on("click", handleClick)
+          
+          polyline.on("mouseover", handleMouseOver)
+          polyline.on("mouseout", handleMouseOut)
+          outline.on("mouseover", handleMouseOver)
+          outline.on("mouseout", handleMouseOut)
+
+          const popupContent = `
+            <div style="font-family: system-ui; padding: 4px; min-width: 180px;">
+              <div style="
+                font-weight: bold; 
+                font-size: 15px; 
+                margin-bottom: 8px; 
+                padding-bottom: 8px; 
+                border-bottom: 2px solid ${colorScheme.main};
+                color: ${colorScheme.main};
+              ">
+                🚚 Route ${route.id}
+              </div>
+              <div style="display: grid; gap: 4px; font-size: 12px;">
+                <div><strong>Status:</strong> ${route.status}</div>
+                <div><strong>Stops:</strong> ${route.stops.length}</div>
+                <div><strong>Distance:</strong> ${route.estimated_km} km</div>
+                <div><strong>Capacity:</strong> ${route.capacity_util_pct}%</div>
+              </div>
+            </div>
+          `
+
+          shadow.bindPopup(popupContent)
+          outline.bindPopup(popupContent)
+          polyline.bindPopup(popupContent)
+
+          const routeGroup = L.featureGroup([shadow, outline, polyline])
+          polylinesRef.current.set(route.id, routeGroup)
         })
+
+        await Promise.all(routePromises)
+        
+        if (isMounted) {
+          setLoadingRoutes(false)
+          
+          if (polylinesRef.current.size > 0) {
+            const group = L.featureGroup(Array.from(polylinesRef.current.values()))
+            map.fitBounds(group.getBounds().pad(0.1))
+          }
+        }
       })
       .catch((error) => {
         console.error("Error loading Leaflet:", error)
+        setLoadingRoutes(false)
       })
 
     return () => {
+      isMounted = false
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove()
         mapInstanceRef.current = null
       }
+      polylinesRef.current.clear()
+      markersRef.current = []
+      document.head.removeChild(style)
     }
   }, [centers, customers, routes, selectedRouteId, onRouteClick])
 
-  return <div ref={mapRef} className="h-full w-full rounded-lg" />
+  return (
+    <div className="relative h-full w-full">
+      <div ref={mapRef} className="h-full w-full rounded-lg" />
+      {loadingRoutes && (
+        <div className="absolute top-4 right-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 backdrop-blur-sm">
+          <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin" />
+          <span className="font-medium">Calculating optimal routes...</span>
+        </div>
+      )}
+      
+      {/* Route legend */}
+      <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm p-4 rounded-lg shadow-lg max-w-xs">
+        <div className="font-bold text-sm mb-2 flex items-center gap-2">
+          <span>📍</span> Legend
+        </div>
+        <div className="space-y-2 text-xs">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-white text-xs">🏢</div>
+            <span>Distribution center</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">1</div>
+            <span>Numbered stop</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="text-blue-500 text-lg">▲</div>
+            <span>Route direction</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }

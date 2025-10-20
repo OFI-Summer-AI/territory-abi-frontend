@@ -84,7 +84,7 @@ export function PredictiveForecast({ customer }: PredictiveForecastProps) {
             <Tooltip
               formatter={(value) => Number(value as number).toFixed(1)}
               contentStyle={{
-                backgroundColor: "oklch(0.18 0.02 240)",
+                backgroundColor: "#ffffff",
                 border: "1px solid oklch(0.25 0.02 240)",
                 borderRadius: "8px",
               }}

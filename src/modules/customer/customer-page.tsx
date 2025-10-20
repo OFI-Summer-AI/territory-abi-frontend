@@ -2,12 +2,11 @@ import { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Button } from "@/shared/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
 import { CustomerCard } from "@/modules/dashboard/components/customer-card"
-import { getCustomer, getCenters } from "@/modules/lib/api"
-import type { Customer, Center } from "@/modules/lib/types"
+import { getCustomer } from "@/modules/lib/api"
+import type { Customer } from "@/modules/lib/types"
 import { ArrowLeft, Beer, TrendingUp } from "lucide-react"
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts"
 import { PredictiveForecast } from "@/modules/customer/predictive-forecast"
 
 export default function CustomerDetailPage() {
@@ -22,18 +21,13 @@ export default function CustomerDetailPage() {
       })
     | null
   >(null)
-  const [centers, setCenters] = useState<Center[]>([])
-  const [selectedCenter, setSelectedCenter] = useState<string>("")
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [customerData, centersData] = await Promise.all([getCustomer(customerId), getCenters()])
-
+        const customerData = await getCustomer(customerId)
         setCustomer(customerData)
-        setSelectedCenter(customerData.center_id)
-        setCenters(centersData)
       } catch (error) {
         console.error("Error loading customer details:", error)
       } finally {
@@ -43,12 +37,6 @@ export default function CustomerDetailPage() {
 
     loadData()
   }, [customerId])
-
-  const handleReassign = () => {
-    if (selectedCenter && customer) {
-      alert(`Customer reassigned to center: ${selectedCenter} (mock action)`)
-    }
-  }
 
   if (loading) {
     return (
@@ -68,6 +56,23 @@ export default function CustomerDetailPage() {
       </div>
     )
   }
+
+  // Derived metrics from delivery_history (HL only)
+  const deliveries = customer.delivery_history || []
+  const sortedDeliveries = [...deliveries].sort((a, b) => a.date.localeCompare(b.date))
+  const last30 = sortedDeliveries.slice(-30)
+  const totalDeliveries = deliveries.length
+  const completedDeliveries = deliveries.filter((d) => d.status === "delivered" && d.delivered_hl > 0).length
+  const failedDeliveries = totalDeliveries - completedDeliveries
+  const completionRate = totalDeliveries > 0 ? Math.round((completedDeliveries / totalDeliveries) * 100) : 0
+  const totalDeliveredHL = deliveries.reduce((sum, d) => sum + (d.delivered_hl || 0), 0)
+  const avgHLPerDelivery = totalDeliveries > 0 ? Math.round(totalDeliveredHL / totalDeliveries) : 0
+
+  const performanceData = last30.map((d) => ({
+    date: d.date,
+    compliance: d.status === "delivered" && d.delivered_hl > 0 ? 100 : 0,
+    delivered_hl: d.delivered_hl || 0,
+  }))
 
   return (
       <>
@@ -89,45 +94,42 @@ export default function CustomerDetailPage() {
             {/* Customer Info Card */}
             <CustomerCard customer={customer} />
 
-            {/* Delivery History Chart */}
+            {/* Delivery Performance Chart (compliance by date and delivered HL) */}
             <Card>
               <CardHeader>
-                <CardTitle>Delivery History</CardTitle>
+                <CardTitle>Delivery Performance</CardTitle>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={formatHistoryWithLast12Months(customer.history)}>
+                  <LineChart data={performanceData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.25 0.02 240)" />
-                    <XAxis dataKey="month" stroke="oklch(0.65 0.01 240)" />
-                    <YAxis stroke="oklch(0.65 0.01 240)"  />
+                    <XAxis dataKey="date" stroke="oklch(0.65 0.01 240)" />
+                    <YAxis yAxisId="left" stroke="oklch(0.65 0.01 240)" domain={[0, 100]} />
+                    <YAxis yAxisId="right" orientation="right" stroke="oklch(0.65 0.01 240)" />
                     <Tooltip
-                    formatter={(value) => Number(value as number).toFixed(1)}
+                      formatter={(value) => Number(value as number).toLocaleString()}
                       contentStyle={{
-                        backgroundColor: "oklch(0.18 0.02 240)",
+                        backgroundColor: "#ffffff",
                         border: "1px solid oklch(0.25 0.02 240)",
                         borderRadius: "8px",
                       }}
                     />
+                    <Legend />
                     <Line
+                      yAxisId="left"
                       type="monotone"
-                      dataKey="deliveries"
+                      dataKey="compliance"
                       stroke="oklch(0.6 0.18 250)"
                       strokeWidth={2}
-                      name="Deliveries"
+                      name="Compliance %"
                     />
                     <Line
+                      yAxisId="right"
                       type="monotone"
-                      dataKey="avg_kg"
-                      stroke="oklch(0.65 0.18 35)"
-                      strokeWidth={2}
-                      name="Avg Weight (kg)"
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="avg_hl"
+                      dataKey="delivered_hl"
                       stroke="oklch(0.65 0.18 200)"
                       strokeWidth={2}
-                      name="Avg Weight (hl)"
+                      name="Delivered HL"
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -139,39 +141,6 @@ export default function CustomerDetailPage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Reassign Center */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Reassign Center</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="text-sm text-muted-foreground">Current Center</label>
-                  <p className="font-medium">{centers.find((c) => c.id === customer.center_id)?.name}</p>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground">New Center</label>
-                  <Select value={selectedCenter} onValueChange={setSelectedCenter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select center" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {centers.map((center) => (
-                        <SelectItem key={center.id} value={center.id}>
-                          {center.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <Button className="w-full" onClick={handleReassign} disabled={selectedCenter === customer.center_id}>
-                  Reassign Customer
-                </Button>
-              </CardContent>
-            </Card>
-
             {/* Quick Stats */}
             <Card>
               <CardHeader>
@@ -179,38 +148,30 @@ export default function CustomerDetailPage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
-                  <div className="text-sm text-muted-foreground">Total Deliveries (12 months)</div>
-                  <div className="text-xl font-bold">{customer.history.reduce((sum, h) => sum + h.deliveries, 0)}</div>
+                  <div className="text-sm text-muted-foreground">Total Deliveries</div>
+                  <div className="text-xl font-bold">{totalDeliveries}</div>
                 </div>
 
                 <div>
-                  <div className="text-sm text-muted-foreground">Avg Monthly Deliveries</div>
-                  <div className="text-xl font-bold">
-                    {Math.round(customer.history.reduce((sum, h) => sum + h.deliveries, 0) / customer.history.length)}
-                  </div>
+                  <div className="text-sm text-muted-foreground">Completed Deliveries</div>
+                  <div className="text-xl font-bold">{completedDeliveries}</div>
                 </div>
 
                 <div>
-                  <div className="text-sm text-muted-foreground">Avg Weight per Delivery</div>
-                  <div className="text-xl font-bold">{customer.avg_order_kg} kg</div>
+                  <div className="text-sm text-muted-foreground">Failed Deliveries</div>
+                  <div className="text-xl font-bold">{failedDeliveries}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">Total Weight (12 months)</div>
-                  <div className="text-xl font-bold">
-                    {Math.round(customer.history.reduce((sum, h) => sum + h.avg_kg * h.deliveries, 0)).toLocaleString()}{" "}
-                    kg
-                  </div>
+                  <div className="text-sm text-muted-foreground">Completion Rate</div>
+                  <div className="text-xl font-bold">{completionRate}%</div>
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">Avg Weight per Delivery HL</div>
-                  <div className="text-xl font-bold">{customer.avg_order_hl} hl</div>
+                  <div className="text-sm text-muted-foreground">Total Delivered (HL)</div>
+                  <div className="text-xl font-bold">{totalDeliveredHL.toLocaleString()} hl</div>
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">Total Weight HL (12 months)</div>
-                  <div className="text-xl font-bold">
-                    {Math.round(customer.history.reduce((sum, h) => sum + h.avg_hl * h.deliveries, 0)).toLocaleString()}{" "}
-                    hl
-                  </div>
+                  <div className="text-sm text-muted-foreground">Avg HL per Delivery</div>
+                  <div className="text-xl font-bold">{avgHLPerDelivery} hl</div>
                 </div>
               </CardContent>
             </Card>
@@ -264,32 +225,4 @@ export default function CustomerDetailPage() {
         </div>
       </>
   )
-}
-
-function formatHistoryWithLast12Months(
-  history: Array<{ month: string; deliveries: number; avg_kg: number; avg_hl: number }>,
-) {
-  // Build labels for the last 12 months ending with current month
-  const now = new Date()
-  const labels: string[] = []
-  const cursor = new Date(now.getFullYear(), now.getMonth(), 1)
-  // We want 12 labels: from 11 months ago up to current month
-  for (let i = 11; i >= 0; i--) {
-    const d = new Date(cursor)
-    d.setMonth(cursor.getMonth() - i)
-    const y = d.getFullYear()
-    const m = String(d.getMonth() + 1).padStart(2, "0")
-    labels.push(`${y}-${m}`)
-  }
-
-  // Align existing history values (assumed length 12) to those labels
-  const values = history.slice(-12)
-  const padded = Array.from({ length: 12 }, (_, idx) => values[idx] || values[values.length - 1])
-
-  return padded.map((h, idx) => ({
-    month: labels[idx],
-    deliveries: h.deliveries,
-    avg_kg: h.avg_kg,
-    avg_hl: h.avg_hl,
-  }))
 }

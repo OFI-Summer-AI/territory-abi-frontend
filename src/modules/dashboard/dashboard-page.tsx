@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react"
 import { KpiCard } from "@/modules/dashboard/components/kpi-card"
-import { RoutesTable } from "@/modules/dashboard/components/routes-table"
-import { RouteDetailPanel } from "@/modules/dashboard/components/route-detail-panel"
+import { CustomerTable } from "@/modules/customer/customer-table"
 import { Button } from "@/shared/ui/button"
 import { getCenters, getAllCustomers, getRoutes, getKpis } from "@/modules/lib/api"
 import { useAppStore } from "@/modules/lib/store"
 import type { Center, Customer, Route, KpiSummary } from "@/modules/lib/types"
-import { Map, Table, Truck, Users, Gauge, Clock, Beer } from "lucide-react"
+import { Map, Table, Truck, Users, Gauge, Clock } from "lucide-react"
 
 import { MapRoutes } from "@/modules/dashboard/components/map-routes"
 
@@ -17,6 +16,7 @@ export default function DashboardPage() {
   const [routes, setRoutes] = useState<Route[]>([])
   const [kpis, setKpis] = useState<KpiSummary | null>(null)
   const [loading, setLoading] = useState(true)
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null)
 
   useEffect(() => {
     async function loadData() {
@@ -42,7 +42,7 @@ export default function DashboardPage() {
     loadData()
   }, [])
 
-  const selectedRoute = routes.find((r) => r.id === selectedRouteId)
+  const selectedCustomer = customers.find((c) => c.id === selectedCustomerId)
 
   if (loading) {
     return (
@@ -115,7 +115,7 @@ export default function DashboardPage() {
 
         {/* Map or Table View */}
         <div className="grid gap-4 lg:grid-cols-3">
-          <div className={selectedRoute ? "lg:col-span-2" : "lg:col-span-3"}>
+          <div className={selectedCustomer ? "lg:col-span-2" : "lg:col-span-3"}>
             {viewMode === "map" ? (
               <div className="h-[600px] overflow-hidden rounded-lg border bg-card">
                 <MapRoutes
@@ -127,14 +127,29 @@ export default function DashboardPage() {
                 />
               </div>
             ) : (
-              <RoutesTable routes={routes} onView={(id) => setSelectedRouteId(id)} />
+              <CustomerTable customers={customers} onView={(id) => setSelectedCustomerId(id)} />
             )}
           </div>
 
-          {/* Route Detail Panel */}
-          {selectedRoute && (
+          {/* Customer Detail Panel - For now, we'll keep the route detail panel but you can create a customer detail panel later */}
+          {selectedCustomer && (
             <div className="lg:col-span-1">
-              <RouteDetailPanel route={selectedRoute} customers={customers} onClose={() => setSelectedRouteId(null)} />
+              <div className="rounded-lg border bg-card p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Customer Details</h3>
+                  <Button variant="ghost" size="sm" onClick={() => setSelectedCustomerId(null)}>
+                    ×
+                  </Button>
+                </div>
+                <div className="space-y-2">
+                  <p><strong>Name:</strong> {selectedCustomer.name}</p>
+                  <p><strong>Address:</strong> {selectedCustomer.address}</p>
+                  <p><strong>Priority:</strong> {selectedCustomer.priority}</p>
+                  <p><strong>Frequency:</strong> {selectedCustomer.frequency}</p>
+                  <p><strong>Avg Order:</strong> {selectedCustomer.avg_order_hl} HL</p>
+                  <p><strong>Status:</strong> {selectedCustomer.active ? "Active" : "Inactive"}</p>
+                </div>
+              </div>
             </div>
           )}
         </div>
