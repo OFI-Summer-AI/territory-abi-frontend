@@ -21,6 +21,17 @@ export interface Center {
     center_id: string
   }
   
+  export interface DeliveryHistory {
+    id: string
+    date: string
+    ordered_hl: number
+    vehicle_id: string
+    delivery_time: string
+    status: "delivered" | "not_delivered" | "partial"
+    delivered_hl: number
+    reason?: string
+  }
+
   export interface Customer {
     id: string
     name: string
@@ -33,6 +44,7 @@ export interface Center {
     frequency: "daily" | "weekly" | "biweekly" | "monthly"
     priority: "high" | "medium" | "low"
     active: boolean
+    delivery_history: DeliveryHistory[]
   }
   
   export interface RouteStop {
