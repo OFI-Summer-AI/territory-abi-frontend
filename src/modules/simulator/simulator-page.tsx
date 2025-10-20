@@ -3,27 +3,28 @@ import { useNavigate } from "react-router-dom"
 import { SimulatorPanel } from "@/modules/dashboard/components/simulator-panel"
 import { KpiComparison } from "@/modules/dashboard/components/kpi-comparison"
 import { RoutesTable } from "@/modules/dashboard/components/routes-table"
+import { ComplianceAnalysis } from "@/modules/dashboard/components/compliance-analysis"
+import { MapComparison } from "@/modules/dashboard/components/map-comparison"
 import { Button } from "@/shared/ui/button"
-import { getCenters, getCustomers, simulateRoutes } from "@/modules/lib/api"
-import type { Center, Customer, SimulationResult } from "@/modules/lib/types"
+import { getCenters, simulateRoutes, simulateCompliance } from "@/modules/lib/api"
+import type { Center, SimulationResult, ComplianceSimulationResult, OptimizationSuggestion } from "@/modules/lib/types"
 import { RotateCcw } from "lucide-react"
 
 export default function SimulatorPage() {
   const navigate = useNavigate()
   const [centers, setCenters] = useState<Center[]>([])
-  const [customers, setCustomers] = useState<Customer[]>([])
-  const [selectedCustomers, setSelectedCustomers] = useState<string[]>([])
   const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null)
+  const [complianceResult, setComplianceResult] = useState<ComplianceSimulationResult | null>(null)
   const [loading, setLoading] = useState(true)
   const [simulating, setSimulating] = useState(false)
+  const [showCompliance, setShowCompliance] = useState(false)
+  const [showMapComparison, setShowMapComparison] = useState(false)
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [centersData, customersData] = await Promise.all([getCenters(), getCustomers()])
-
+        const centersData = await getCenters()
         setCenters(centersData)
-        setCustomers(customersData.data)
       } catch (error) {
         console.error("Error loading simulator data:", error)
       } finally {
@@ -34,21 +35,20 @@ export default function SimulatorPage() {
     loadData()
   }, [])
 
-  const handleCustomerToggle = (customerId: string) => {
-    setSelectedCustomers((prev) =>
-      prev.includes(customerId) ? prev.filter((id) => id !== customerId) : [...prev, customerId],
-    )
-  }
-
   const handleSimulate = async (centerId: string, date: string) => {
     setSimulating(true)
     try {
-      const result = await simulateRoutes({
-        customer_ids: selectedCustomers,
+      // Run route simulation
+      const routeResult = await simulateRoutes({
         center_id: centerId,
         date,
       })
-      setSimulationResult(result)
+      setSimulationResult(routeResult)
+
+      // Run compliance simulation
+      const complianceResult = await simulateCompliance(centerId)
+      setComplianceResult(complianceResult)
+      setShowCompliance(true)
     } catch (error) {
       console.error("Error simulating routes:", error)
       alert("Error generating route proposal. Please try again.")
@@ -58,8 +58,21 @@ export default function SimulatorPage() {
   }
 
   const handleReset = () => {
-    setSelectedCustomers([])
     setSimulationResult(null)
+    setComplianceResult(null)
+    setShowCompliance(false)
+  }
+
+  const handleViewMap = () => {
+    if (complianceResult) {
+      setShowMapComparison(true)
+    }
+  }
+
+  const handleApplySuggestions = (suggestions: OptimizationSuggestion[]) => {
+    // TODO: Implement suggestion application
+    console.log('Applying suggestions:', suggestions)
+    alert(`Applying ${suggestions.length} optimization suggestions...`)
   }
 
   if (loading) {
@@ -75,8 +88,8 @@ export default function SimulatorPage() {
         <div className="mb-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-3xl font-bold">Route Simulator</h2>
-              <p className="text-muted-foreground">Generate optimized route proposals based on selected customers</p>
+              <h2 className="text-3xl font-bold">Route Simulator & Compliance Analysis</h2>
+              <p className="text-muted-foreground">Generate optimized route proposals and analyze customer compliance</p>
             </div>
             {simulationResult && (
               <Button variant="outline" onClick={handleReset}>
@@ -91,10 +104,7 @@ export default function SimulatorPage() {
           {/* Simulator Panel */}
           <div className="lg:col-span-1">
             <SimulatorPanel
-              customers={customers}
               centers={centers}
-              selectedCustomers={selectedCustomers}
-              onCustomerToggle={handleCustomerToggle}
               onSimulate={handleSimulate}
               loading={simulating}
             />
@@ -104,44 +114,94 @@ export default function SimulatorPage() {
           <div className="space-y-6 lg:col-span-2">
             {simulationResult ? (
               <>
-                {/* KPI Comparison */}
-                <KpiComparison
-                  current={simulationResult.current_kpis}
-                  proposed={simulationResult.proposed_kpis}
-                  savings={simulationResult.savings}
-                />
+                {/* Navigation Tabs */}
+                <div className="flex space-x-1 bg-muted p-1 rounded-lg">
+                  <button
+                    onClick={() => setShowCompliance(false)}
+                    className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      !showCompliance
+                        ? 'bg-background text-foreground shadow-sm' 
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Route Optimization
+                  </button>
+                  {complianceResult && (
+                    <button
+                      onClick={() => setShowCompliance(true)}
+                      className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        showCompliance
+                          ? 'bg-background text-foreground shadow-sm' 
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      Compliance Analysis
+                    </button>
+                  )}
+                </div>
 
-                {/* Proposed Routes */}
-                <div className="space-y-4">
-                  <h3 className="text-xl font-bold">Proposed Routes ({simulationResult.proposed_routes.length})</h3>
-                  <RoutesTable
-                    routes={simulationResult.proposed_routes}
-                    onView={(id) => navigate(`/routes/${id}`)}
+                {!showCompliance ? (
+                  <>
+                    {/* KPI Comparison */}
+                    <KpiComparison
+                      current={simulationResult.current_kpis}
+                      proposed={simulationResult.proposed_kpis}
+                      savings={simulationResult.savings}
+                    />
+
+                    {/* Proposed Routes */}
+                    <div className="space-y-4">
+                      <h3 className="text-xl font-bold">Proposed Routes ({simulationResult.proposed_routes.length})</h3>
+                      <RoutesTable
+                        routes={simulationResult.proposed_routes}
+                        onView={() => navigate(`/routes/route-2`)}
+                      />
+                    </div>
+
+                    {/* Implementation Note */}
+                    <div className="rounded-lg border border-chart-1 bg-chart-1/10 p-4">
+                      <h4 className="font-medium">Implementation Notes</h4>
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        This simulation uses a greedy clustering algorithm to group customers by proximity and vehicle
+                        capacity. The proposed routes optimize for capacity utilization while minimizing total distance and
+                        time. Review the routes above and adjust as needed before implementation.
+                      </p>
+                    </div>
+                  </>
+                ) : complianceResult ? (
+                  <ComplianceAnalysis
+                    result={complianceResult}
+                    onViewMap={handleViewMap}
+                    onApplySuggestions={handleApplySuggestions}
                   />
-                </div>
-
-                {/* Implementation Note */}
-                <div className="rounded-lg border border-chart-1 bg-chart-1/10 p-4">
-                  <h4 className="font-medium">Implementation Notes</h4>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    This simulation uses a greedy clustering algorithm to group customers by proximity and vehicle
-                    capacity. The proposed routes optimize for capacity utilization while minimizing total distance and
-                    time. Review the routes above and adjust as needed before implementation.
-                  </p>
-                </div>
+                ) : (
+                  <div className="flex h-[400px] items-center justify-center rounded-lg border border-dashed">
+                    <div className="text-center">
+                      <p className="text-muted-foreground">Compliance analysis is running...</p>
+                    </div>
+                  </div>
+                )}
               </>
             ) : (
               <div className="flex h-[400px] items-center justify-center rounded-lg border border-dashed">
                 <div className="text-center">
-                  <p className="text-muted-foreground">Select customers and click "Generate Route Proposal"</p>
+                  <p className="text-muted-foreground">Select a center and click "Generate Route Proposal"</p>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    The simulator will create optimized routes based on your selection
+                    The simulator will create optimized routes and analyze compliance for all customers in the center
                   </p>
                 </div>
               </div>
             )}
           </div>
         </div>
+
+        {/* Map Comparison Modal */}
+        {showMapComparison && complianceResult && (
+          <MapComparison
+            complianceResult={complianceResult}
+            onClose={() => setShowMapComparison(false)}
+          />
+        )}
       </>
   )
 }
