@@ -4,15 +4,13 @@ import { SimulatorPanel } from "@/modules/dashboard/components/simulator-panel"
 import { KpiComparison } from "@/modules/dashboard/components/kpi-comparison"
 import { RoutesTable } from "@/modules/dashboard/components/routes-table"
 import { Button } from "@/shared/ui/button"
-import { getCenters, getCustomers, simulateRoutes } from "@/modules/lib/api"
-import type { Center, Customer, SimulationResult } from "@/modules/lib/types"
+import { getCenters, simulateRoutes } from "@/modules/lib/api"
+import type { Center, SimulationResult } from "@/modules/lib/types"
 import { RotateCcw } from "lucide-react"
 
 export default function SimulatorPage() {
   const navigate = useNavigate()
   const [centers, setCenters] = useState<Center[]>([])
-  const [customers, setCustomers] = useState<Customer[]>([])
-  const [selectedCustomers, setSelectedCustomers] = useState<string[]>([])
   const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null)
   const [loading, setLoading] = useState(true)
   const [simulating, setSimulating] = useState(false)
@@ -20,10 +18,8 @@ export default function SimulatorPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [centersData, customersData] = await Promise.all([getCenters(), getCustomers()])
-
+        const centersData = await getCenters()
         setCenters(centersData)
-        setCustomers(customersData.data)
       } catch (error) {
         console.error("Error loading simulator data:", error)
       } finally {
@@ -34,17 +30,10 @@ export default function SimulatorPage() {
     loadData()
   }, [])
 
-  const handleCustomerToggle = (customerId: string) => {
-    setSelectedCustomers((prev) =>
-      prev.includes(customerId) ? prev.filter((id) => id !== customerId) : [...prev, customerId],
-    )
-  }
-
   const handleSimulate = async (centerId: string, date: string) => {
     setSimulating(true)
     try {
       const result = await simulateRoutes({
-        customer_ids: selectedCustomers,
         center_id: centerId,
         date,
       })
@@ -58,7 +47,6 @@ export default function SimulatorPage() {
   }
 
   const handleReset = () => {
-    setSelectedCustomers([])
     setSimulationResult(null)
   }
 
@@ -91,10 +79,7 @@ export default function SimulatorPage() {
           {/* Simulator Panel */}
           <div className="lg:col-span-1">
             <SimulatorPanel
-              customers={customers}
               centers={centers}
-              selectedCustomers={selectedCustomers}
-              onCustomerToggle={handleCustomerToggle}
               onSimulate={handleSimulate}
               loading={simulating}
             />
@@ -133,9 +118,9 @@ export default function SimulatorPage() {
             ) : (
               <div className="flex h-[400px] items-center justify-center rounded-lg border border-dashed">
                 <div className="text-center">
-                  <p className="text-muted-foreground">Select customers and click "Generate Route Proposal"</p>
+                  <p className="text-muted-foreground">Select a center and click "Generate Route Proposal"</p>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    The simulator will create optimized routes based on your selection
+                    The simulator will create optimized routes for all customers in the center
                   </p>
                 </div>
               </div>
