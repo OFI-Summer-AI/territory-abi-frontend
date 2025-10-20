@@ -38,6 +38,24 @@
           "plate": "PQR678",
           "capacity_kg": 8000,
           "type": "van"
+        },
+        {
+          "id": "vehicle-10",
+          "plate": "STU901",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-11",
+          "plate": "VWX234",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-12",
+          "plate": "YZA567",
+          "capacity_kg": 8000,
+          "type": "van"
         }
       ]
     },
@@ -68,6 +86,36 @@
           "plate": "HIJ456",
           "capacity_kg": 8000,
           "type": "van"
+        },
+        {
+          "id": "vehicle-13",
+          "plate": "KLM789",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-14",
+          "plate": "NOP012",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-15",
+          "plate": "QRS345",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-16",
+          "plate": "TUV678",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-17",
+          "plate": "WXY901",
+          "capacity_kg": 8000,
+          "type": "van"
         }
       ]
     },
@@ -79,7 +127,51 @@
       "lng": -74.0950,
       "capacity_kg": 40000,
       "capacity_hl": 8000,
-      "active": true
+      "active": true,
+      "vehicles": [
+        {
+          "id": "vehicle-18",
+          "plate": "ZAB234",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-19",
+          "plate": "CDE567",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-20",
+          "plate": "FGH890",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-21",
+          "plate": "IJK123",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-22",
+          "plate": "LMN456",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-23",
+          "plate": "OPQ789",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-24",
+          "plate": "RST012",
+          "capacity_kg": 8000,
+          "type": "van"
+        }
+      ]
     },
     {
       "id": "center-4",
@@ -89,7 +181,45 @@
       "lng": -74.0450,
       "capacity_kg": 38000,
       "capacity_hl": 7600,
-      "active": true
+      "active": true,
+      "vehicles": [
+        {
+          "id": "vehicle-25",
+          "plate": "UVW345",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-26",
+          "plate": "XYZ678",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-27",
+          "plate": "ABC901",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-28",
+          "plate": "DEF234",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-29",
+          "plate": "GHI567",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-30",
+          "plate": "JKL890",
+          "capacity_kg": 8000,
+          "type": "van"
+        }
+      ]
     },
     {
       "id": "center-5",
@@ -99,7 +229,39 @@
       "lng": -74.0650,
       "capacity_kg": 30000,
       "capacity_hl": 6000,
-      "active": true
+      "active": true,
+      "vehicles": [
+        {
+          "id": "vehicle-31",
+          "plate": "MNO123",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-32",
+          "plate": "PQR456",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-33",
+          "plate": "STU789",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-34",
+          "plate": "VWX012",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-35",
+          "plate": "YZA345",
+          "capacity_kg": 8000,
+          "type": "van"
+        }
+      ]
     },
     {
       "id": "center-6",
@@ -109,7 +271,57 @@
       "lng": -74.0680,
       "capacity_kg": 35000,
       "capacity_hl": 7000,
-      "active": true
+      "active": true,
+      "vehicles": [
+        {
+          "id": "vehicle-36",
+          "plate": "BCD678",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-37",
+          "plate": "EFG901",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-38",
+          "plate": "HIJ234",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-39",
+          "plate": "KLM567",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-40",
+          "plate": "NOP890",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-41",
+          "plate": "QRS123",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-42",
+          "plate": "TUV456",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-43",
+          "plate": "WXY789",
+          "capacity_kg": 8000,
+          "type": "van"
+        }
+      ]
     },
     {
       "id": "center-7",
@@ -119,7 +331,45 @@
       "lng": -74.0580,
       "capacity_kg": 32000,
       "capacity_hl": 6400,
-      "active": true
+      "active": true,
+      "vehicles": [
+        {
+          "id": "vehicle-44",
+          "plate": "ZAB012",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-45",
+          "plate": "CDE345",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-46",
+          "plate": "FGH678",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-47",
+          "plate": "IJK901",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-48",
+          "plate": "LMN234",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-49",
+          "plate": "OPQ567",
+          "capacity_kg": 8000,
+          "type": "van"
+        }
+      ]
     },
     {
       "id": "center-8",
@@ -129,7 +379,39 @@
       "lng": -74.0720,
       "capacity_kg": 28000,
       "capacity_hl": 5600,
-      "active": true
+      "active": true,
+      "vehicles": [
+        {
+          "id": "vehicle-50",
+          "plate": "RST890",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-51",
+          "plate": "UVW123",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-52",
+          "plate": "XYZ456",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-53",
+          "plate": "ABC789",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-54",
+          "plate": "DEF012",
+          "capacity_kg": 8000,
+          "type": "van"
+        }
+      ]
     },
     {
       "id": "center-9",
@@ -139,7 +421,51 @@
       "lng": -74.0820,
       "capacity_kg": 26000,
       "capacity_hl": 5200,
-      "active": true
+      "active": true,
+      "vehicles": [
+        {
+          "id": "vehicle-55",
+          "plate": "GHI345",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-56",
+          "plate": "JKL678",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-57",
+          "plate": "MNO901",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-58",
+          "plate": "PQR234",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-59",
+          "plate": "STU567",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-60",
+          "plate": "VWX890",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-61",
+          "plate": "YZA123",
+          "capacity_kg": 8000,
+          "type": "van"
+        }
+      ]
     },
     {
       "id": "center-10",
@@ -149,6 +475,62 @@
       "lng": -74.0600,
       "capacity_kg": 33000,
       "capacity_hl": 6600,
-      "active": true
+      "active": true,
+      "vehicles": [
+        {
+          "id": "vehicle-62",
+          "plate": "BCD456",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-63",
+          "plate": "EFG789",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-64",
+          "plate": "HIJ012",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-65",
+          "plate": "KLM345",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-66",
+          "plate": "NOP678",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-67",
+          "plate": "QRS901",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-68",
+          "plate": "TUV234",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-69",
+          "plate": "WXY567",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-70",
+          "plate": "ZAB890",
+          "capacity_kg": 8000,
+          "type": "van"
+        }
+      ]
     }
   ]
