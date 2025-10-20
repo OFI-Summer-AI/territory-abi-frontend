@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom"
 import { SimulatorPanel } from "@/modules/dashboard/components/simulator-panel"
 import { KpiComparison } from "@/modules/dashboard/components/kpi-comparison"
 import { RoutesTable } from "@/modules/dashboard/components/routes-table"
@@ -11,7 +10,6 @@ import type { Center, SimulationResult, ComplianceSimulationResult, Optimization
 import { RotateCcw } from "lucide-react"
 
 export default function SimulatorPage() {
-  const navigate = useNavigate()
   const [centers, setCenters] = useState<Center[]>([])
   const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null)
   const [complianceResult, setComplianceResult] = useState<ComplianceSimulationResult | null>(null)
@@ -154,7 +152,6 @@ export default function SimulatorPage() {
                       <h3 className="text-xl font-bold">Proposed Routes ({simulationResult.proposed_routes.length})</h3>
                       <RoutesTable
                         routes={simulationResult.proposed_routes}
-                        onView={() => navigate(`/routes/route-2`)}
                       />
                     </div>
 
