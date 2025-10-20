@@ -7,7 +7,39 @@
       "lng": -74.0721,
       "capacity_kg": 50000,
       "capacity_hl": 10000,
-      "active": true
+      "active": true, 
+      "vehicles": [
+        {
+          "id": "vehicle-2",
+          "plate": "DEF456",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-3",
+          "plate": "GHI789",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-4",
+          "plate": "JKL012",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-5",
+          "plate": "MNO345",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-6",
+          "plate": "PQR678",
+          "capacity_kg": 8000,
+          "type": "van"
+        }
+      ]
     },
     {
       "id": "center-2",
@@ -17,7 +49,27 @@
       "lng": -74.0547,
       "capacity_kg": 45000,
       "capacity_hl": 9000,
-      "active": true
+      "active": true,
+      "vehicles": [
+        {
+          "id": "vehicle-7",
+          "plate": "BCD890",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-8",
+          "plate": "EFG123",
+          "capacity_kg": 8000,
+          "type": "van"
+        },
+        {
+          "id": "vehicle-9",
+          "plate": "HIJ456",
+          "capacity_kg": 8000,
+          "type": "van"
+        }
+      ]
     },
     {
       "id": "center-3",
