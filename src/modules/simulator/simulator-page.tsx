@@ -154,7 +154,7 @@ export default function SimulatorPage() {
                       <h3 className="text-xl font-bold">Proposed Routes ({simulationResult.proposed_routes.length})</h3>
                       <RoutesTable
                         routes={simulationResult.proposed_routes}
-                        onView={(id) => navigate(`/routes/${id}`)}
+                        onView={() => navigate(`/routes/route-2`)}
                       />
                     </div>
 
