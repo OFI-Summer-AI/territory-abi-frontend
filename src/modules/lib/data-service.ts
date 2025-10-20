@@ -387,6 +387,34 @@ export const dataService = {
           })
         }
 
+        // Tuesday closure pattern analysis
+        const tuesdayDeliveries = deliveryHistory.filter(d => {
+          const date = new Date(d.date)
+          return date.getDay() === 2 // Tuesday is day 2
+        })
+        
+        if (tuesdayDeliveries.length >= 3) {
+          const tuesdayFailures = tuesdayDeliveries.filter(d => d.status === 'not_delivered')
+          const tuesdayFailureRate = (tuesdayFailures.length / tuesdayDeliveries.length) * 100
+          
+          if (tuesdayFailureRate > 60) {
+            const closureReasons = tuesdayFailures.map(d => d.reason).filter(r => 
+              r && (r.toLowerCase().includes('closed') || r.toLowerCase().includes('unavailable') || r.toLowerCase().includes('staff'))
+            )
+            
+            if (closureReasons.length > 0) {
+              issues.push({
+                type: 'delivery_time',
+                severity: tuesdayFailureRate > 80 ? 'critical' : 'high',
+                description: `Tuesday delivery failures: ${tuesdayFailureRate.toFixed(0)}% failure rate on Tuesdays (${tuesdayFailures.length}/${tuesdayDeliveries.length})`,
+                impact: `Client appears to be systematically closed/unavailable on Tuesdays. Recommend moving to Wednesday route to improve delivery success rate`,
+                metric_value: tuesdayFailureRate,
+                target_value: 10
+              })
+            }
+          }
+        }
+
         // Capacity utilization issues (for larger customers)
         const avgDeliveryHL = deliveryHistory.reduce((sum, d) => sum + (d.delivered_hl || 0), 0) / deliveryHistory.length
         if (avgDeliveryHL > 0 && customer.priority === 'high' && avgDeliveryHL < 50) {
@@ -422,6 +450,17 @@ export const dataService = {
 
       // Add random additional issues for variety
       const randomIssues = [
+        {
+          condition: Math.random() > 0.85,
+          issue: {
+            type: 'delivery_time' as const,
+            severity: 'medium' as const,
+            description: 'Monday morning delivery challenges - Customer reports receiving deliveries causing operational disruption',
+            impact: 'Early week deliveries interfere with customer weekly planning. Consider Tuesday afternoon slot',
+            metric_value: 15,
+            target_value: 5
+          }
+        },
         {
           condition: Math.random() > 0.8,
           issue: {
@@ -511,8 +550,38 @@ export const dataService = {
         validation_status: 'validated'
       },
       {
-        id: 'schedule-adjustment-1',
+        id: 'client-route-reassignment-1',
         client_id: 'customer-2',
+        type: 'route_change',
+        description: 'Move Bar El Encuentro from Tuesday route (Route-T2) to Wednesday route (Route-W1) - Client consistently closed on Tuesdays causing delivery failures',
+        implementation_cost: 300,
+        affected_routes: ['route-tuesday-2', 'route-wednesday-1'],
+        expected_benefit: {
+          delivery_success_improvement: 25.0,
+          frequency_alignment: 15.0,
+          time_reduction_hours: 0.5,
+          cost_savings: 450
+        },
+        validation_status: 'validated'
+      },
+      {
+        id: 'client-route-reassignment-2',
+        client_id: 'customer-7',
+        type: 'route_change',
+        description: 'Relocate Restaurante La Plaza from Tuesday route (Route-T1) to Wednesday route (Route-W2) - Analysis shows 80% failure rate on Tuesdays due to staff unavailability',
+        implementation_cost: 250,
+        affected_routes: ['route-tuesday-1', 'route-wednesday-2'],
+        expected_benefit: {
+          delivery_success_improvement: 30.0,
+          frequency_alignment: 12.0,
+          time_reduction_hours: 0.3,
+          cost_savings: 380
+        },
+        validation_status: 'validated'
+      },
+      {
+        id: 'schedule-adjustment-1',
+        client_id: 'customer-3',
         type: 'schedule_adjustment',
         description: 'Adjust delivery schedules to match customer availability patterns and reduce delays',
         implementation_cost: 500,
@@ -526,8 +595,23 @@ export const dataService = {
         validation_status: 'validated'
       },
       {
+        id: 'client-route-reassignment-3',
+        client_id: 'customer-8',
+        type: 'route_change',
+        description: 'Transfer Café Central from Tuesday morning route (Route-T3) to Wednesday afternoon route (Route-W3) - Customer reports Tuesday closure for weekly inventory management',
+        implementation_cost: 400,
+        affected_routes: ['route-tuesday-3', 'route-wednesday-3'],
+        expected_benefit: {
+          delivery_success_improvement: 35.0,
+          frequency_alignment: 18.0,
+          time_reduction_hours: 0.8,
+          cost_savings: 520
+        },
+        validation_status: 'needs_review'
+      },
+      {
         id: 'vehicle-reassignment-1',
-        client_id: 'customer-3',
+        client_id: 'customer-4',
         type: 'vehicle_reassignment',
         description: 'Assign appropriate vehicle sizes to match delivery volumes and reduce operational costs',
         implementation_cost: 2000,
@@ -542,7 +626,7 @@ export const dataService = {
       },
       {
         id: 'frequency-increase-1',
-        client_id: 'customer-4',
+        client_id: 'customer-5',
         type: 'frequency_increase',
         description: 'Increase delivery frequency for high-demand customers to reduce emergency orders',
         implementation_cost: 800,
@@ -556,8 +640,23 @@ export const dataService = {
         validation_status: 'validated'
       },
       {
+        id: 'multi-client-route-optimization-1',
+        client_id: 'multiple',
+        type: 'route_change',
+        description: 'Bulk reassignment: Move 5 clients from Tuesday routes to Wednesday/Thursday routes based on delivery failure analysis - Tuesday shows 40% higher failure rate due to client closures',
+        implementation_cost: 1200,
+        affected_routes: ['route-tuesday-1', 'route-tuesday-2', 'route-wednesday-1', 'route-wednesday-2', 'route-thursday-1'],
+        expected_benefit: {
+          delivery_success_improvement: 28.0,
+          frequency_alignment: 22.0,
+          time_reduction_hours: 3.2,
+          cost_savings: 1100
+        },
+        validation_status: 'needs_review'
+      },
+      {
         id: 'time-window-optimization-1',
-        client_id: 'customer-5',
+        client_id: 'customer-6',
         type: 'schedule_adjustment',
         description: 'Optimize delivery time windows based on customer operational hours and staff availability',
         implementation_cost: 300,
@@ -569,21 +668,6 @@ export const dataService = {
           cost_savings: 200
         },
         validation_status: 'validated'
-      },
-      {
-        id: 'backup-route-1',
-        client_id: 'customer-6',
-        type: 'route_change',
-        description: 'Establish backup delivery routes for customers with chronic delivery failures',
-        implementation_cost: 1200,
-        affected_routes: ['route-3', 'route-7'],
-        expected_benefit: {
-          delivery_success_improvement: 20.0,
-          frequency_alignment: 4.0,
-          time_reduction_hours: 2.0,
-          cost_savings: 900
-        },
-        validation_status: 'needs_review'
       }
     ]
   },
