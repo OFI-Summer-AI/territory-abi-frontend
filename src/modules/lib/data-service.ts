@@ -321,29 +321,157 @@ export const dataService = {
     return selectedCustomers.map((customer) => {
       const deliveryHistory = customer.delivery_history || []
       const successfulDeliveries = deliveryHistory.filter(d => d.status === 'delivered').length
+      const failedDeliveries = deliveryHistory.filter(d => d.status === 'not_delivered').length
       const successRate = deliveryHistory.length > 0 ? (successfulDeliveries / deliveryHistory.length) * 100 : 0
+      
+      // Calculate frequency metrics
+      const avgFrequency = 7 + Math.floor(Math.random() * 14)
+      const targetFrequency = 7
+      const avgDelayHours = 2 + Math.random() * 6
       
       const issues: ComplianceIssue[] = []
       
+      // Delivery Success Rate Issues
       if (successRate < 90) {
         issues.push({
           type: 'delivery_success',
           severity: successRate < 70 ? 'critical' : successRate < 80 ? 'high' : 'medium',
-          description: `Low delivery success rate: ${successRate.toFixed(1)}%`,
-          impact: `${Math.round(100 - successRate)}% of deliveries are failing, affecting customer satisfaction and revenue`,
+          description: `Low delivery success rate: ${successRate.toFixed(1)}% (${failedDeliveries} failed out of ${deliveryHistory.length} attempts)`,
+          impact: `${Math.round(100 - successRate)}% failure rate is causing customer dissatisfaction and revenue loss. Risk of contract termination.`,
           metric_value: successRate,
           target_value: 95
         })
       }
 
-      if (Math.random() > 0.7) {
+      // Frequency Compliance Issues
+      if (avgFrequency > targetFrequency + 2) {
+        const frequencyGap = avgFrequency - targetFrequency
         issues.push({
           type: 'frequency',
+          severity: frequencyGap > 7 ? 'high' : frequencyGap > 4 ? 'medium' : 'low',
+          description: `Delivery frequency gap: ${avgFrequency} days actual vs ${targetFrequency} days target`,
+          impact: `Customer receives deliveries ${frequencyGap} days later than expected, affecting their inventory management and operations`,
+          metric_value: avgFrequency,
+          target_value: targetFrequency
+        })
+      }
+
+      // Delivery Time Window Issues
+      if (avgDelayHours > 2) {
+        issues.push({
+          type: 'delivery_time',
+          severity: avgDelayHours > 6 ? 'high' : avgDelayHours > 4 ? 'medium' : 'low',
+          description: `Chronic delivery delays: ${avgDelayHours.toFixed(1)} hours average delay`,
+          impact: `Late deliveries disrupt customer operations and may violate service level agreements`,
+          metric_value: avgDelayHours,
+          target_value: 2
+        })
+      }
+
+      // Add specific issues based on delivery history patterns
+      if (deliveryHistory.length > 0) {
+        const recentFailures = deliveryHistory.slice(0, 5).filter(d => d.status === 'not_delivered')
+        
+        // Recent failure pattern
+        if (recentFailures.length >= 2) {
+          const commonReasons = recentFailures.map(d => d.reason).filter(Boolean)
+          const mostCommonReason = commonReasons.length > 0 ? commonReasons[0] : 'Unknown'
+          
+          issues.push({
+            type: 'delivery_success',
+            severity: recentFailures.length >= 3 ? 'critical' : 'high',
+            description: `Recent failure pattern: ${recentFailures.length} failures in last 5 deliveries`,
+            impact: `Primary cause: "${mostCommonReason}". Requires immediate intervention to prevent service deterioration`,
+            metric_value: recentFailures.length,
+            target_value: 0
+          })
+        }
+
+        // Capacity utilization issues (for larger customers)
+        const avgDeliveryHL = deliveryHistory.reduce((sum, d) => sum + (d.delivered_hl || 0), 0) / deliveryHistory.length
+        if (avgDeliveryHL > 0 && customer.priority === 'high' && avgDeliveryHL < 50) {
+          issues.push({
+            type: 'capacity',
+            severity: 'medium',
+            description: `Underutilized delivery capacity: ${avgDeliveryHL.toFixed(1)}HL average delivery`,
+            impact: `Small delivery volumes may indicate customer dissatisfaction or route inefficiency`,
+            metric_value: avgDeliveryHL,
+            target_value: 100
+          })
+        }
+
+        // Volume consistency issues
+        const hlVariances = deliveryHistory.map(d => d.delivered_hl || 0)
+        if (hlVariances.length > 1) {
+          const avgHL = hlVariances.reduce((a, b) => a + b, 0) / hlVariances.length
+          const variance = hlVariances.reduce((sum, val) => sum + Math.pow(val - avgHL, 2), 0) / hlVariances.length
+          const stdDev = Math.sqrt(variance)
+          
+          if (stdDev > avgHL * 0.4 && avgHL > 0) {
+            issues.push({
+              type: 'delivery_success',
+              severity: 'low',
+              description: `High volume variability: ${stdDev.toFixed(1)}HL standard deviation`,
+              impact: `Inconsistent order volumes make route planning difficult and may indicate customer satisfaction issues`,
+              metric_value: stdDev,
+              target_value: avgHL * 0.2
+            })
+          }
+        }
+      }
+
+      // Add random additional issues for variety
+      const randomIssues = [
+        {
+          condition: Math.random() > 0.8,
+          issue: {
+            type: 'delivery_time' as const,
+            severity: 'medium' as const,
+            description: 'Delivery outside preferred time window',
+            impact: 'Customer staff not available during actual delivery times, causing operational disruptions',
+            metric_value: 15,
+            target_value: 5
+          }
+        },
+        {
+          condition: Math.random() > 0.85,
+          issue: {
+            type: 'capacity' as const,
+            severity: 'low' as const,
+            description: 'Vehicle capacity mismatch',
+            impact: 'Using oversized vehicles for small deliveries increases operational costs',
+            metric_value: 30,
+            target_value: 80
+          }
+        },
+        {
+          condition: Math.random() > 0.9,
+          issue: {
+            type: 'frequency' as const,
+            severity: 'medium' as const,
+            description: 'Emergency delivery requests increasing',
+            impact: 'Customer placing more urgent orders suggests regular delivery schedule is insufficient',
+            metric_value: 3,
+            target_value: 0
+          }
+        }
+      ]
+
+      randomIssues.forEach(({ condition, issue }) => {
+        if (condition && issues.length < 4) { // Limit to 4 issues per customer
+          issues.push(issue)
+        }
+      })
+
+      // Ensure at least one issue per non-compliant customer
+      if (issues.length === 0) {
+        issues.push({
+          type: 'delivery_success',
           severity: 'medium',
-          description: 'Irregular delivery frequency',
-          impact: 'Customer is not receiving deliveries according to agreed schedule',
-          metric_value: 14,
-          target_value: 7
+          description: 'General compliance monitoring required',
+          impact: 'Customer flagged for enhanced monitoring due to service level concerns',
+          metric_value: 85,
+          target_value: 95
         })
       }
 
@@ -351,13 +479,13 @@ export const dataService = {
         customer,
         current_metrics: {
           delivery_success_rate: successRate,
-          avg_delivery_frequency_days: 7 + Math.floor(Math.random() * 14),
-          avg_delivery_delay_hours: 2 + Math.random() * 4,
+          avg_delivery_frequency_days: avgFrequency,
+          avg_delivery_delay_hours: avgDelayHours,
           last_delivery_date: deliveryHistory[0]?.date || '2024-01-01'
         },
         target_metrics: {
           delivery_success_rate: 95,
-          target_frequency_days: 7,
+          target_frequency_days: targetFrequency,
           max_delivery_delay_hours: 2
         },
         issues
@@ -371,7 +499,7 @@ export const dataService = {
         id: 'route-optimization-1',
         client_id: 'customer-1',
         type: 'route_change',
-        description: 'Optimize delivery routes to reduce travel time and increase success rate',
+        description: 'Consolidate routes to reduce delivery time windows and improve success rates',
         implementation_cost: 1500,
         affected_routes: ['route-1', 'route-2', 'route-3'],
         expected_benefit: {
@@ -386,7 +514,7 @@ export const dataService = {
         id: 'schedule-adjustment-1',
         client_id: 'customer-2',
         type: 'schedule_adjustment',
-        description: 'Adjust delivery schedules based on customer availability patterns',
+        description: 'Adjust delivery schedules to match customer availability patterns and reduce delays',
         implementation_cost: 500,
         affected_routes: ['route-1', 'route-4'],
         expected_benefit: {
@@ -401,14 +529,59 @@ export const dataService = {
         id: 'vehicle-reassignment-1',
         client_id: 'customer-3',
         type: 'vehicle_reassignment',
-        description: 'Reassign specialized vehicle to handle capacity demands',
-        implementation_cost: 5000,
+        description: 'Assign appropriate vehicle sizes to match delivery volumes and reduce operational costs',
+        implementation_cost: 2000,
         affected_routes: ['route-2', 'route-3', 'route-5'],
         expected_benefit: {
           delivery_success_improvement: 15.0,
           frequency_alignment: 6.0,
           time_reduction_hours: 4.0,
           cost_savings: 1200
+        },
+        validation_status: 'needs_review'
+      },
+      {
+        id: 'frequency-increase-1',
+        client_id: 'customer-4',
+        type: 'frequency_increase',
+        description: 'Increase delivery frequency for high-demand customers to reduce emergency orders',
+        implementation_cost: 800,
+        affected_routes: ['route-1', 'route-6'],
+        expected_benefit: {
+          delivery_success_improvement: 10.0,
+          frequency_alignment: 18.0,
+          time_reduction_hours: 1.5,
+          cost_savings: 600
+        },
+        validation_status: 'validated'
+      },
+      {
+        id: 'time-window-optimization-1',
+        client_id: 'customer-5',
+        type: 'schedule_adjustment',
+        description: 'Optimize delivery time windows based on customer operational hours and staff availability',
+        implementation_cost: 300,
+        affected_routes: ['route-2', 'route-4'],
+        expected_benefit: {
+          delivery_success_improvement: 7.0,
+          frequency_alignment: 5.0,
+          time_reduction_hours: 0.8,
+          cost_savings: 200
+        },
+        validation_status: 'validated'
+      },
+      {
+        id: 'backup-route-1',
+        client_id: 'customer-6',
+        type: 'route_change',
+        description: 'Establish backup delivery routes for customers with chronic delivery failures',
+        implementation_cost: 1200,
+        affected_routes: ['route-3', 'route-7'],
+        expected_benefit: {
+          delivery_success_improvement: 20.0,
+          frequency_alignment: 4.0,
+          time_reduction_hours: 2.0,
+          cost_savings: 900
         },
         validation_status: 'needs_review'
       }
