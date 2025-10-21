@@ -43,7 +43,7 @@ export default function SimulatorPage() {
       })
       setSimulationResult(routeResult)
 
-      // Run compliance simulation
+      // Run coverage simulation
       const complianceResult = await simulateCompliance(centerId)
       setComplianceResult(complianceResult)
       setShowCompliance(true)
@@ -86,8 +86,8 @@ export default function SimulatorPage() {
         <div className="mb-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-3xl font-bold">Route Simulator & Compliance Analysis</h2>
-              <p className="text-muted-foreground">Generate optimized route proposals and analyze customer compliance</p>
+              <h2 className="text-3xl font-bold">Route Simulator & Coverage Analysis</h2>
+              <p className="text-muted-foreground">Generate optimized route proposals and analyze customer coverage</p>
             </div>
             {simulationResult && (
               <Button variant="outline" onClick={handleReset}>
@@ -133,7 +133,7 @@ export default function SimulatorPage() {
                           : 'text-muted-foreground hover:text-foreground'
                       }`}
                     >
-                      Compliance Analysis
+                      Coverage Analysis
                     </button>
                   )}
                 </div>
@@ -174,7 +174,7 @@ export default function SimulatorPage() {
                 ) : (
                   <div className="flex h-[400px] items-center justify-center rounded-lg border border-dashed">
                     <div className="text-center">
-                      <p className="text-muted-foreground">Compliance analysis is running...</p>
+                      <p className="text-muted-foreground">Coverage analysis is running...</p>
                     </div>
                   </div>
                 )}
@@ -184,7 +184,7 @@ export default function SimulatorPage() {
                 <div className="text-center">
                   <p className="text-muted-foreground">Select a center and click "Generate Route Proposal"</p>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    The simulator will create optimized routes and analyze compliance for all customers in the center
+                    The simulator will create optimized routes and analyze coverage for all customers in the center
                   </p>
                 </div>
               </div>

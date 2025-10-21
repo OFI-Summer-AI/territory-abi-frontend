@@ -36,7 +36,7 @@ function MapView({ title, routes, customers, type, complianceResult }: MapViewPr
     "#DDA0DD", "#98D8C8", "#FFB6C1", "#87CEEB", "#F0E68C"
   ]
 
-  // Get non-compliant customers for highlighting
+  // Get non-covered customers for highlighting
   const nonCompliantCustomerIds = complianceResult?.non_compliant_clients.map(c => c.customer.id) || []
 
   // Mock map data - in real implementation, this would use actual map library
@@ -199,7 +199,7 @@ function MapView({ title, routes, customers, type, complianceResult }: MapViewPr
           </div>
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 bg-red-500 rounded-full" />
-            <span>Non-Compliant Customers</span>
+            <span>Non-Covered Customers</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 bg-slate-400 rounded-full" />
@@ -360,7 +360,7 @@ export function MapComparison({ complianceResult, onClose }: MapComparisonProps)
     },
   ]
 
-  // Optimized routes from compliance result
+  // Optimized routes from coverage result
   const optimizedRoutes = complianceResult.proposed_routes
 
   // All customers for map display
@@ -373,7 +373,7 @@ export function MapComparison({ complianceResult, onClose }: MapComparisonProps)
         <div className="flex items-center justify-between p-6 border-b">
           <div>
             <h2 className="text-2xl font-bold">Route Comparison Map</h2>
-            <p className="text-muted-foreground">Current routes vs. optimized compliance routes</p>
+            <p className="text-muted-foreground">Current routes vs. optimized coverage routes</p>
           </div>
           <Button variant="ghost" onClick={onClose}>
             <X className="h-5 w-5" />
@@ -404,7 +404,7 @@ export function MapComparison({ complianceResult, onClose }: MapComparisonProps)
             <div className="flex items-center gap-6 text-sm">
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-muted-foreground" />
-                <span>{complianceResult.non_compliant_clients.length} non-compliant clients</span>
+                <span>{complianceResult.non_compliant_clients.length} non-covered clients</span>
               </div>
               <div className="flex items-center gap-2">
                 <Route className="h-4 w-4 text-muted-foreground" />

@@ -70,7 +70,9 @@ export default function CustomerDetailPage() {
 
   const performanceData = last30.map((d) => ({
     date: d.date,
-    compliance: d.status === "delivered" && d.delivered_hl > 0 ? 100 : 0,
+    compliance: d.status === "delivered" && d.delivered_hl > 0 
+      ? Math.min(100, Math.round((d.delivered_hl / d.ordered_hl) * 100))
+      : 0,
     delivered_hl: d.delivered_hl || 0,
   }))
 
@@ -94,7 +96,7 @@ export default function CustomerDetailPage() {
             {/* Customer Info Card */}
             <CustomerCard customer={customer} />
 
-            {/* Delivery Performance Chart (compliance by date and delivered HL) */}
+            {/* Delivery Performance Chart (coverage by date and delivered HL) */}
             <Card>
               <CardHeader>
                 <CardTitle>Delivery Performance</CardTitle>
@@ -121,7 +123,7 @@ export default function CustomerDetailPage() {
                       dataKey="compliance"
                       stroke="oklch(0.6 0.18 250)"
                       strokeWidth={2}
-                      name="Compliance %"
+                      name="Coverage %"
                     />
                     <Line
                       yAxisId="right"
@@ -162,7 +164,7 @@ export default function CustomerDetailPage() {
                   <div className="text-xl font-bold">{failedDeliveries}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">Completion Rate</div>
+                  <div className="text-sm text-muted-foreground">Coverage Rate</div>
                   <div className="text-xl font-bold">{completionRate}%</div>
                 </div>
                 <div>

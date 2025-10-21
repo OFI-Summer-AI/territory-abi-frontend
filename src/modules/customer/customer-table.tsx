@@ -71,7 +71,7 @@ export function CustomerTable({ customers, onView }: CustomerTableProps) {
             <TableHead>ID</TableHead>
             <TableHead>Customer</TableHead>
             <TableHead>Effective Deliveries</TableHead>
-            <TableHead>Completed Deliveries</TableHead>
+            <TableHead>Covered Deliveries</TableHead>
             <TableHead>Delivered HL</TableHead>
             <TableHead>Priority</TableHead>
             <TableHead>Frequency</TableHead>

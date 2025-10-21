@@ -200,7 +200,7 @@ export default function ReportsPage() {
                     <th className="p-3 text-right text-sm font-medium text-muted-foreground">Ordered (HL)</th>
                     <th className="p-3 text-right text-sm font-medium text-muted-foreground">Delivered (HL)</th>
                     <th className="p-3 text-right text-sm font-medium text-muted-foreground">Variance</th>
-                    <th className="p-3 text-right text-sm font-medium text-muted-foreground">Completion Rate</th>
+                    <th className="p-3 text-right text-sm font-medium text-muted-foreground">Coverage Rate</th>
                     <th className="p-3 text-right text-sm font-medium text-muted-foreground">Total Deliveries</th>
                   </tr>
                 </thead>
@@ -261,9 +261,9 @@ export default function ReportsPage() {
             </div>
 
             <div className="rounded-lg border bg-muted/50 p-4">
-              <h4 className="font-medium">Customer Completion Rate</h4>
+              <h4 className="font-medium">Customer Coverage Rate</h4>
               <p className="mt-1 text-sm text-muted-foreground">
-                Average completion rate across all customers is{" "}
+                Average coverage rate across all customers is{" "}
                 {(comparisonData.reduce((sum, item) => sum + item.completion_rate, 0) / comparisonData.length).toFixed(1)}
                 %. Aim for 90%+ for optimal customer satisfaction.
               </p>

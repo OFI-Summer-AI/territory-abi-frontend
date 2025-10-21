@@ -53,13 +53,13 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
 
   return (
     <div className="space-y-6">
-      {/* Compliance Overview */}
+      {/* Coverage Overview */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
-              Compliance Analysis Overview
+              Coverage Analysis Overview
             </CardTitle>
             <div className="flex gap-2">
               <Button variant="outline" onClick={onViewMap}>
@@ -75,7 +75,7 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
               <div className="text-2xl font-bold text-destructive">
                 {non_compliant_clients.length}
               </div>
-              <div className="text-sm text-muted-foreground">Non-Compliant Clients</div>
+              <div className="text-sm text-muted-foreground">Non-Covered Clients</div>
             </div>
             <div className="space-y-2">
               <div className="text-2xl font-bold text-green-600">
@@ -87,7 +87,7 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
               <div className="text-2xl font-bold text-blue-600">
                 {impact_analysis.improvements.delivery_success_rate_change.toFixed(1)}%
               </div>
-              <div className="text-sm text-muted-foreground">Expected Improvement</div>
+              <div className="text-sm text-muted-foreground">Expected Coverage Improvement</div>
             </div>
             <div className="space-y-2">
               <div className="text-2xl font-bold text-green-600">
@@ -117,7 +117,7 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm">Frequency Compliance</span>
+                  <span className="text-sm">Frequency Coverage</span>
                   <span className="text-sm font-medium text-green-600">
                     +{impact_analysis.improvements.frequency_compliance_improvement.toFixed(1)}%
                   </span>
@@ -144,7 +144,7 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
               : 'text-muted-foreground hover:text-foreground'
           }`}
         >
-          Non-Compliant Clients
+          Non-Covered Clients
         </button>
         <button
           onClick={() => setActiveTab('solutions')}
@@ -357,7 +357,7 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
                     <h6 className="font-medium text-muted-foreground">Current State</h6>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span>Compliance Rate:</span>
+                        <span>Coverage Rate:</span>
                         <span>{impact_analysis.before.compliance_rate.toFixed(1)}%</span>
                       </div>
                       <div className="flex justify-between">
@@ -374,7 +374,7 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
                     <h6 className="font-medium text-green-600">Projected State</h6>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span>Compliance Rate:</span>
+                        <span>Coverage Rate:</span>
                         <span className="text-green-600">
                           {impact_analysis.after.compliance_rate.toFixed(1)}%
                         </span>
