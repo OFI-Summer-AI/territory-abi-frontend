@@ -8,7 +8,7 @@ function AppLayout() {
       <header className="border-b bg-card">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2">
-            <img src="/src/assets/abi-logo.png" alt="ABI Territory" className="h-10 w-40" />
+            <img src="https://www.generixgroup.com/wp-content/uploads/2024/01/AB-Inbev-logo_1-e1707387381682.png" alt="AB InBev" className="h-10 w-40" />
           </div>
           <nav className="flex items-center gap-2">
             <Button asChild variant="ghost">
