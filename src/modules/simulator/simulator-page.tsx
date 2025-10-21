@@ -159,7 +159,9 @@ export default function SimulatorPage() {
                     <div className="rounded-lg border border-chart-1 bg-chart-1/10 p-4">
                       <h4 className="font-medium">Implementation Notes</h4>
                       <p className="mt-2 text-sm text-muted-foreground">
-                        This simulation uses territory optimization to assign customers to the most efficient zones based on proximity and vehicle capacity. The generated routes aim to maximize resource utilization and minimize total distance and time. Review the proposed territories and routes above and make adjustments as needed before implementation.
+                        This simulation uses a greedy clustering algorithm to group customers by proximity and vehicle
+                        capacity. The proposed routes optimize for capacity utilization while minimizing total distance and
+                        time. Review the routes above and adjust as needed before implementation.
                       </p>
                     </div>
                   </>
@@ -182,7 +184,7 @@ export default function SimulatorPage() {
                 <div className="text-center">
                   <p className="text-muted-foreground">Select a center and click "Generate Route Proposal"</p>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    The simulator will create optimized routes and analyze coverage for all customers in the center
+                    The optimizer predicts customer demand and analyzes coverage for all customers in the center
                   </p>
                 </div>
               </div>
