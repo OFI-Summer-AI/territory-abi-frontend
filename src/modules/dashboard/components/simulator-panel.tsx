@@ -109,7 +109,7 @@ export function SimulatorPanel({
 
         <Button className="w-full" onClick={handleSimulate} disabled={loading || !selectedCenter}>
           <Play className="mr-2 h-4 w-4" />
-          {loading ? "Generating..." : "Generate Route Proposal"}
+          {loading ? "Generating..." : "Generate Predictions and Analysis"}
         </Button>
       </CardContent>
     </Card>
