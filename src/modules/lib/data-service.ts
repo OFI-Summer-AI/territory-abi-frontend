@@ -551,7 +551,7 @@ export const dataService = {
         id: 'client-route-reassignment-1',
         client_id: 'customer-2',
         type: 'route_change',
-        description: 'Move Bar El Encuentro from Tuesday route (Route-T2) to Wednesday route (Route-W1) - Client consistently closed on Tuesdays causing delivery failures',
+        description: 'Relocate Supermercado La Canasta from Tuesday route (Route-T2) to Wednesday route (Route-W1) - Client experiences recurring payment processing constraints on Tuesdays, resulting in delivery deferrals and reduced service efficiency',
         implementation_cost: 300,
         affected_routes: ['route-tuesday-2', 'route-wednesday-1'],
         expected_benefit: {
