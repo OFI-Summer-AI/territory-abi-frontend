@@ -250,14 +250,13 @@ export default function DashboardPage() {
                 <div className="mt-4 grid gap-3">
                   <KpiCard label="Total Rutas" value={rutasDelCliente.length} icon={<Truck className="h-4 w-4" />} />
                   <KpiCard label="Total Ordenes" value={totalOrdenesCliente} icon={<Package className="h-4 w-4" />} />
-                  <KpiCard label="Total Clientes" value={totalClientesMismoCentro} icon={<Users className="h-4 w-4" />} />
                   <KpiCard
                     label="Capacidad Prom. KG"
                     value={`${capacidadPromedioKgCliente.toFixed(0)} kg`}
                     icon={<Gauge className="h-4 w-4" />}
                   />
                   <KpiCard
-                    label="Porcentaje de Cobertura"
+                    label="Porcentaje de envios completados"
                     value={`${coberturaCliente.toFixed(1)}%`}
                     icon={<Map className="h-4 w-4" />}
                   />

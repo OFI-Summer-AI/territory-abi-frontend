@@ -29,9 +29,10 @@ export function CustomerTable({ customers, onView }: CustomerTableProps) {
     return Math.round((completedDeliveries / totalDeliveries) * 100)
   }
 
-  const getTotalHectolitersDelivered = (customer: Customer) => {
+  const getTotalKilogramsDelivered = (customer: Customer) => {
+    const conversionFactor = customer.avg_order_hl > 0 ? customer.avg_order_kg / customer.avg_order_hl : 0
     return customer.delivery_history?.reduce((total, delivery) => {
-      return total + delivery.delivered_hl
+      return total + delivery.delivered_hl * conversionFactor
     }, 0) ?? 0
   }
 
@@ -72,7 +73,7 @@ export function CustomerTable({ customers, onView }: CustomerTableProps) {
             <TableHead>Cliente</TableHead>
             <TableHead>Entregas Efectivas</TableHead>
             <TableHead>Entregas Cubiertas</TableHead>
-            <TableHead>HL Entregado</TableHead>
+            <TableHead>KG Entregado</TableHead>
             <TableHead>Prioridad</TableHead>
             <TableHead>Frecuencia</TableHead>
             <TableHead className="text-right">Acciones</TableHead>
@@ -82,7 +83,7 @@ export function CustomerTable({ customers, onView }: CustomerTableProps) {
           {customers.map((customer) => {
             const deliveryStats = getEffectiveDeliveries(customer)
             const completionRate = getDeliveryCompletionRate(customer)
-            const totalHL = getTotalHectolitersDelivered(customer)
+            const totalKg = getTotalKilogramsDelivered(customer)
             
             return (
               <TableRow key={customer.id}>
@@ -114,8 +115,8 @@ export function CustomerTable({ customers, onView }: CustomerTableProps) {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <div className="text-sm font-medium">{totalHL.toLocaleString()} HL</div>
-                  <div className="text-xs text-muted-foreground">Promedio: {customer.avg_order_hl} HL</div>
+                  <div className="text-sm font-medium">{Math.round(totalKg).toLocaleString()} KG</div>
+                  <div className="text-xs text-muted-foreground">Promedio: {customer.avg_order_kg} KG</div>
                 </TableCell>
                 <TableCell>
                   <Badge className={getPriorityColor(customer.priority)}>

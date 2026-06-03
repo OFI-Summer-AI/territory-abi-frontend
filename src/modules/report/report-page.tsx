@@ -31,11 +31,12 @@ export default function ReportsPage() {
     loadData()
   }, [dateRange])
 
-  // Calculate comparison data (ordered vs delivered hectoliters)
+  // Calculate comparison data (ordered vs delivered in KG)
   const comparisonData = customers.map((customer) => {
     const deliveries = customer.delivery_history || []
-    const totalOrderedHL = deliveries.reduce((sum, delivery) => sum + delivery.ordered_hl, 0)
-    const totalDeliveredHL = deliveries.reduce((sum, delivery) => sum + delivery.delivered_hl, 0)
+    const conversionFactor = customer.avg_order_hl > 0 ? customer.avg_order_kg / customer.avg_order_hl : 0
+    const totalOrderedKG = deliveries.reduce((sum, delivery) => sum + delivery.ordered_hl * conversionFactor, 0)
+    const totalDeliveredKG = deliveries.reduce((sum, delivery) => sum + delivery.delivered_hl * conversionFactor, 0)
     const completedDeliveries = deliveries.filter(d => d.status === "delivered" && d.delivered_hl > 0).length
     const totalDeliveries = deliveries.length
     const completionRate = totalDeliveries > 0 ? (completedDeliveries / totalDeliveries) * 100 : 0
@@ -43,8 +44,8 @@ export default function ReportsPage() {
     return {
       customer_id: customer.id,
       customer_name: customer.name,
-      proposed_hl: totalOrderedHL,
-      delivered_hl: totalDeliveredHL,
+      proposed_kg: totalOrderedKG,
+      delivered_kg: totalDeliveredKG,
       completion_rate: completionRate,
       total_deliveries: totalDeliveries,
       completed_deliveries: completedDeliveries,
@@ -56,15 +57,15 @@ export default function ReportsPage() {
   // Chart data for visualization
   const chartData = comparisonData.slice(0, 8).map((item) => ({
     name: item.customer_name,
-    Pedidos: item.proposed_hl,
-    Entregados: item.delivered_hl,
+    Pedidos: item.proposed_kg,
+    Entregados: item.delivered_kg,
   }))
 
   // Summary statistics
-  const totalOrderedHL = comparisonData.reduce((sum, item) => sum + item.proposed_hl, 0)
-  const totalDeliveredHL = comparisonData.reduce((sum, item) => sum + item.delivered_hl, 0)
-  const variance = totalDeliveredHL - totalOrderedHL
-  const variancePercent = totalOrderedHL > 0 ? ((variance / totalOrderedHL) * 100).toFixed(1) : "0"
+  const totalOrderedKG = comparisonData.reduce((sum, item) => sum + item.proposed_kg, 0)
+  const totalDeliveredKG = comparisonData.reduce((sum, item) => sum + item.delivered_kg, 0)
+  const variance = totalDeliveredKG - totalOrderedKG
+  const variancePercent = totalOrderedKG > 0 ? ((variance / totalOrderedKG) * 100).toFixed(1) : "0"
 
   if (loading) {
     return (
@@ -80,7 +81,7 @@ export default function ReportsPage() {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-3xl font-bold">Informes de Entrega de Clientes</h2>
-              <p className="text-muted-foreground">Compara hectolitros pedidos vs entregados y exporta datos de clientes</p>
+              <p className="text-muted-foreground">Compara kilogramos pedidos vs entregados y exporta datos de clientes</p>
             </div>
             <ExportButton data={comparisonData} filename={`customer-delivery-report-${dateRange.start}`} />
           </div>
@@ -123,19 +124,19 @@ export default function ReportsPage() {
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Pedido (HL)</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Pedido (KG)</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalOrderedHL.toFixed(1)} HL</div>
+              <div className="text-2xl font-bold">{totalOrderedKG.toFixed(1)} KG</div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Entregado (HL)</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Entregado (KG)</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalDeliveredHL.toFixed(1)} HL</div>
+              <div className="text-2xl font-bold">{totalDeliveredKG.toFixed(1)} KG</div>
             </CardContent>
           </Card>
 
@@ -146,7 +147,7 @@ export default function ReportsPage() {
             <CardContent>
               <div className="text-2xl font-bold">
                 {variance > 0 ? "+" : ""}
-                {variance.toFixed(1)} HL
+                {variance.toFixed(1)} KG
               </div>
               <div className="text-sm text-muted-foreground">
                 {variance > 0 ? "+" : ""}
@@ -159,7 +160,7 @@ export default function ReportsPage() {
         {/* Comparison Chart */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Hectolitros Pedidos vs Entregados</CardTitle>
+            <CardTitle>Kilogramos Pedidos vs Entregados</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={400}>
@@ -168,7 +169,7 @@ export default function ReportsPage() {
                 <XAxis dataKey="name" stroke="oklch(0.65 0.01 240)" />
                 <YAxis
                   stroke="oklch(0.65 0.01 240)"
-                  label={{ value: "Hectolitros (HL)", angle: -90, position: "insideLeft" }}
+                  label={{ value: "Kilogramos (KG)", angle: -90, position: "insideLeft" }}
                 />
                 <Tooltip
                   contentStyle={{
@@ -197,8 +198,8 @@ export default function ReportsPage() {
                   <tr className="border-b">
                     <th className="p-3 text-left text-sm font-medium text-muted-foreground">Cliente</th>
                     <th className="p-3 text-left text-sm font-medium text-muted-foreground">Prioridad</th>
-                    <th className="p-3 text-right text-sm font-medium text-muted-foreground">Pedido (HL)</th>
-                    <th className="p-3 text-right text-sm font-medium text-muted-foreground">Entregado (HL)</th>
+                    <th className="p-3 text-right text-sm font-medium text-muted-foreground">Pedido (KG)</th>
+                    <th className="p-3 text-right text-sm font-medium text-muted-foreground">Entregado (KG)</th>
                     <th className="p-3 text-right text-sm font-medium text-muted-foreground">Variación</th>
                     <th className="p-3 text-right text-sm font-medium text-muted-foreground">Tasa de Cobertura</th>
                     <th className="p-3 text-right text-sm font-medium text-muted-foreground">Entregas Totales</th>
@@ -206,8 +207,8 @@ export default function ReportsPage() {
                 </thead>
                 <tbody>
                   {comparisonData.map((item) => {
-                    const variance = item.delivered_hl - item.proposed_hl
-                    const variancePercent = item.proposed_hl > 0 ? ((variance / item.proposed_hl) * 100).toFixed(1) : "0"
+                    const variance = item.delivered_kg - item.proposed_kg
+                    const variancePercent = item.proposed_kg > 0 ? ((variance / item.proposed_kg) * 100).toFixed(1) : "0"
 
                     return (
                       <tr key={item.customer_id} className="border-b">
@@ -225,8 +226,8 @@ export default function ReportsPage() {
                             {item.priority === "high" ? "alta" : item.priority === "medium" ? "media" : "baja"}
                           </span>
                         </td>
-                        <td className="p-3 text-right">{item.proposed_hl.toFixed(1)}</td>
-                        <td className="p-3 text-right">{item.delivered_hl.toFixed(1)}</td>
+                        <td className="p-3 text-right">{item.proposed_kg.toFixed(1)}</td>
+                        <td className="p-3 text-right">{item.delivered_kg.toFixed(1)}</td>
                         <td className="p-3 text-right">
                           <span className={variance > 0 ? "text-destructive" : "text-chart-2"}>
                             {variance > 0 ? "+" : ""}
@@ -255,8 +256,8 @@ export default function ReportsPage() {
               <h4 className="font-medium">Rendimiento de Entrega</h4>
               <p className="mt-1 text-sm text-muted-foreground">
                 {variance > 0
-                  ? `Los hectolitros entregados superaron lo pedido en ${variance.toFixed(1)} HL (${variancePercent}%). Esto puede indicar sobreentrega o discrepancias de datos.`
-                  : `Los hectolitros entregados fueron ${Math.abs(variance).toFixed(1)} HL menos que lo pedido (${Math.abs(Number.parseFloat(variancePercent))}%). Considera revisar los procesos de entrega.`}
+                  ? `Los kilogramos entregados superaron lo pedido en ${variance.toFixed(1)} KG (${variancePercent}%). Esto puede indicar sobreentrega o discrepancias de datos.`
+                  : `Los kilogramos entregados fueron ${Math.abs(variance).toFixed(1)} KG menos que lo pedido (${Math.abs(Number.parseFloat(variancePercent))}%). Considera revisar los procesos de entrega.`}
               </p>
             </div>
 

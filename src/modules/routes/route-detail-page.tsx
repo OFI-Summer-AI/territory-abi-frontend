@@ -234,13 +234,6 @@ export default function RouteDetailPage() {
                 </div>
 
                 <div>
-                  <div className="text-sm text-muted-foreground">Peso Total HL</div>
-                  <div className="text-2xl font-bold">
-                    {route.stops.reduce((sum, stop) => sum + stop.order_hl, 0)} hl
-                  </div>
-                </div>
-
-                <div>
                   <div className="text-sm text-muted-foreground">Número de Paradas</div>
                   <div className="text-2xl font-bold">{route.stops.length}</div>
                 </div>
