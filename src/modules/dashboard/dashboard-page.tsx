@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { KpiCard } from "@/modules/dashboard/components/kpi-card"
 import { CustomerTable } from "@/modules/customer/customer-table"
 import { Button } from "@/shared/ui/button"
@@ -12,6 +12,8 @@ import { Map, Table, Truck, Users, Gauge, Clock, Package, DollarSign, PiggyBank,
 import {
   Bar,
   BarChart,
+  Area,
+  AreaChart,
   Cell,
   CartesianGrid,
   Legend,
@@ -53,6 +55,8 @@ export default function DashboardPage() {
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null)
   const [selectedRatioClientIds, setSelectedRatioClientIds] = useState<string[]>([])
   const [isRatioSelectorOpen, setIsRatioSelectorOpen] = useState(false)
+  const [forecastStartMonth, setForecastStartMonth] = useState("")
+  const [forecastEndMonth, setForecastEndMonth] = useState("")
 
   useEffect(() => {
     async function loadData() {
@@ -91,6 +95,15 @@ export default function DashboardPage() {
       return customers.slice(0, 8).map((customer) => customer.id)
     })
   }, [customers])
+
+  useEffect(() => {
+    const now = new Date()
+    const start = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+    const end = new Date(start)
+    end.setMonth(start.getMonth() + 5)
+    setForecastStartMonth(`${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, "0")}`)
+    setForecastEndMonth(`${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, "0")}`)
+  }, [])
 
   const selectedCustomer = customers.find((c) => c.id === selectedCustomerId)
 
@@ -298,6 +311,73 @@ export default function DashboardPage() {
     .slice(0, 12)
 
   const ratioCostoEnvioColors = GRAPH_PALETTE
+
+  const monthSpan = (start: string, end: string) => {
+    if (!start || !end) return [] as string[]
+    const [startYear, startMonth] = start.split("-").map(Number)
+    const [endYear, endMonth] = end.split("-").map(Number)
+    if (!startYear || !startMonth || !endYear || !endMonth) return []
+
+    const out: string[] = []
+    const cur = new Date(startYear, startMonth - 1, 1)
+    const last = new Date(endYear, endMonth - 1, 1)
+    if (cur > last) return []
+
+    while (cur <= last) {
+      out.push(`${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, "0")}`)
+      cur.setMonth(cur.getMonth() + 1)
+    }
+
+    return out
+  }
+
+  const demandaGlobalForecastData = useMemo(() => {
+    const historicalMap = customers.reduce<Record<string, { deliveries: number; kg: number }>>((acc, customer) => {
+      const factorKgPorHl = customer.avg_order_hl > 0 ? customer.avg_order_kg / customer.avg_order_hl : 0
+      for (const delivery of customer.delivery_history ?? []) {
+        const month = delivery.date.slice(0, 7)
+        if (!acc[month]) {
+          acc[month] = { deliveries: 0, kg: 0 }
+        }
+        acc[month].deliveries += 1
+        acc[month].kg += delivery.delivered_hl * factorKgPorHl
+      }
+      return acc
+    }, {})
+
+    const historicalSeries = Object.entries(historicalMap)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, value]) => ({ month, deliveries: value.deliveries, kg: value.kg }))
+
+    const recent = historicalSeries.slice(-6)
+    const prevWindow = recent.slice(0, 3)
+    const lastWindow = recent.slice(-3)
+    const prevAvgDeliveries =
+      prevWindow.reduce((sum, item) => sum + item.deliveries, 0) / Math.max(1, prevWindow.length)
+    const lastAvgDeliveries =
+      lastWindow.reduce((sum, item) => sum + item.deliveries, 0) / Math.max(1, lastWindow.length)
+    const trendFactor = prevAvgDeliveries > 0 ? Math.min(1.06, Math.max(0.95, lastAvgDeliveries / prevAvgDeliveries)) : 1.01
+
+    const baseDeliveries =
+      recent.reduce((sum, item) => sum + item.deliveries, 0) / Math.max(1, recent.length)
+    const baseKg = recent.reduce((sum, item) => sum + item.kg, 0) / Math.max(1, recent.length)
+
+    let deliveriesLevel = baseDeliveries || 100
+    let kgLevel = baseKg || 55000
+    const months = monthSpan(forecastStartMonth, forecastEndMonth)
+
+    return months.map((month, idx) => {
+      const seasonal = 1 + 0.06 * Math.sin((idx / 12) * 2 * Math.PI)
+      deliveriesLevel = deliveriesLevel * trendFactor
+      kgLevel = kgLevel * trendFactor
+
+      return {
+        month,
+        deliveries: Math.max(0, Number((deliveriesLevel * seasonal).toFixed(1))),
+        kg: Math.max(0, Number((kgLevel * seasonal).toFixed(1))),
+      }
+    })
+  }, [customers, forecastStartMonth, forecastEndMonth])
 
   const getPriorityLabel = (priority: string) => {
     switch (priority) {
@@ -542,6 +622,90 @@ export default function DashboardPage() {
                     Selecciona al menos un cliente para visualizar la grafica.
                   </p>
                 )}
+              </CardContent>
+            </Card>
+
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle>Predicción de Demanda Global por Mes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-4 grid gap-3 md:grid-cols-3">
+                  <div>
+                    <label className="mb-1 block text-sm text-muted-foreground">Mes inicial</label>
+                    <input
+                      type="month"
+                      className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                      value={forecastStartMonth}
+                      onChange={(e) => setForecastStartMonth(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm text-muted-foreground">Mes final</label>
+                    <input
+                      type="month"
+                      className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                      value={forecastEndMonth}
+                      onChange={(e) => setForecastEndMonth(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <ResponsiveContainer width="100%" height={320}>
+                  <AreaChart data={demandaGlobalForecastData}>
+                    <defs>
+                      <linearGradient id="globalDemandDeliveries" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={GRAPH_PALETTE[1]} stopOpacity={0.8} />
+                        <stop offset="95%" stopColor={GRAPH_PALETTE[1]} stopOpacity={0.05} />
+                      </linearGradient>
+                      <linearGradient id="globalDemandKg" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={GRAPH_PALETTE[2]} stopOpacity={0.8} />
+                        <stop offset="95%" stopColor={GRAPH_PALETTE[2]} stopOpacity={0.05} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.25 0.02 240)" />
+                    <XAxis dataKey="month" stroke="oklch(0.65 0.01 240)" />
+                    <YAxis yAxisId="left" stroke="oklch(0.65 0.01 240)" />
+                    <YAxis
+                      yAxisId="right"
+                      orientation="right"
+                      stroke="oklch(0.65 0.01 240)"
+                      tickFormatter={(value) => `${Math.round(Number(value)).toLocaleString()} kg`}
+                    />
+                    <Tooltip
+                      formatter={(value, name) => {
+                        if (name === "KG previstos") {
+                          return `${Math.round(Number(value)).toLocaleString()} kg`
+                        }
+                        return Number(value).toFixed(1)
+                      }}
+                      contentStyle={{
+                        backgroundColor: "#ffffff",
+                        border: "1px solid oklch(0.25 0.02 240)",
+                        borderRadius: "8px",
+                      }}
+                    />
+                    <Legend />
+                    <Area
+                      yAxisId="left"
+                      type="monotone"
+                      dataKey="deliveries"
+                      name="Entregas previstas"
+                      stroke={GRAPH_PALETTE[1]}
+                      fill="url(#globalDemandDeliveries)"
+                      strokeWidth={2}
+                    />
+                    <Area
+                      yAxisId="right"
+                      type="monotone"
+                      dataKey="kg"
+                      name="KG previstos"
+                      stroke={GRAPH_PALETTE[2]}
+                      fill="url(#globalDemandKg)"
+                      strokeWidth={2}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
               </CardContent>
             </Card>
           </div>
