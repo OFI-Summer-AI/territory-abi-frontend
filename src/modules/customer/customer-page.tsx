@@ -6,13 +6,30 @@ import { CustomerCard } from "@/modules/dashboard/components/customer-card"
 import { KpiCard } from "@/modules/dashboard/components/kpi-card"
 import { getCustomer } from "@/modules/lib/api"
 import type { Customer } from "@/modules/lib/types"
-import { ArrowLeft, Beer, TrendingUp, Truck, Package, Gauge, Map, DollarSign, Clock, PiggyBank } from "lucide-react"
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts"
+import { ArrowLeft, TrendingUp, Package, Gauge, DollarSign, Clock, PiggyBank } from "lucide-react"
+import { ServiceFinancialComboChart } from "@/modules/customer/service-financial-combo-chart"
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ComposedChart,
+  Legend,
+  Line,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts"
 import { PredictiveForecast } from "@/modules/customer/predictive-forecast"
 
 export default function CustomerDetailPage() {
-  const COSTO_FIJO_ENVIO = 38000
-  const COSTO_POR_KG = 14
+  const COSTO_FIJO_ENVIO = 185000
+  const COSTO_POR_KG = 900
+  const PRECIO_VENTA_POR_KG = 3200
+  const COSTO_REINTENTO = 120000
   const KM_PROMEDIO_POR_ENVIO = 18
   const OBJETIVO_AHORRO = 0.08
 
@@ -76,25 +93,41 @@ export default function CustomerDetailPage() {
   const totalDeliveredKG = deliveries.reduce((sum, d) => sum + (d.delivered_hl || 0) * conversionFactor, 0)
   const avgKGPerDelivery = totalDeliveries > 0 ? Math.round(totalDeliveredKG / totalDeliveries) : 0
 
-  const totalRutas = new Set(deliveries.map((d) => d.date)).size
-  const totalOrdenes = totalDeliveries
   const capacidadPromedioKg = customer.avg_order_kg
-  const porcentajeCobertura = completionRate
 
-  const costoPromedioEnvio = COSTO_FIJO_ENVIO + customer.avg_order_kg * COSTO_POR_KG
+  const totalKgPedido = deliveries.reduce((sum, d) => sum + (d.ordered_hl || 0) * conversionFactor, 0)
+  const costoFijoTotal = totalDeliveries * COSTO_FIJO_ENVIO
+  const costoVariableTotal = totalKgPedido * COSTO_POR_KG
+  const costoIncidenciasTotal = failedDeliveries * COSTO_REINTENTO
+  const costoTotalCliente = costoFijoTotal + costoVariableTotal + costoIncidenciasTotal
+  const ingresoTotalCliente = totalDeliveredKG * PRECIO_VENTA_POR_KG
+  const margenTotalCliente = ingresoTotalCliente - costoTotalCliente
+  const margenPctCliente = ingresoTotalCliente > 0 ? (margenTotalCliente / ingresoTotalCliente) * 100 : 0
+  const ratioCostoIngreso = ingresoTotalCliente > 0 ? (costoTotalCliente / ingresoTotalCliente) * 100 : 0
+  const ticketPromedioEntrega = completedDeliveries > 0 ? ingresoTotalCliente / completedDeliveries : 0
+
+  const costoPromedioEnvio = totalDeliveries > 0 ? costoTotalCliente / totalDeliveries : 0
   const costoPromedioEnvioPeriodoAnterior = costoPromedioEnvio * 1.08
   const variacionCostoEnvio =
     costoPromedioEnvioPeriodoAnterior > 0
       ? ((costoPromedioEnvio - costoPromedioEnvioPeriodoAnterior) / costoPromedioEnvioPeriodoAnterior) * 100
       : 0
   const costoPromedioPorKm = KM_PROMEDIO_POR_ENVIO > 0 ? costoPromedioEnvio / KM_PROMEDIO_POR_ENVIO : 0
-  const potentialSavings = costoPromedioEnvio * totalDeliveries * OBJETIVO_AHORRO
+  const potentialSavings = costoTotalCliente * OBJETIVO_AHORRO
 
   const formatMoney = (value: number) =>
     new Intl.NumberFormat("es-CO", {
       style: "currency",
       currency: "COP",
       maximumFractionDigits: 0,
+    }).format(value)
+
+  const formatMoneyCompact = (value: number) =>
+    new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
+      notation: "compact",
+      maximumFractionDigits: 1,
     }).format(value)
 
   const performanceData = last30.map((d) => ({
@@ -104,6 +137,57 @@ export default function CustomerDetailPage() {
       : 0,
     delivered_kg: (d.delivered_hl || 0) * conversionFactor,
   }))
+
+  const financialByMonth = Object.entries(
+    deliveries.reduce<
+      Record<
+        string,
+        {
+          ingreso: number
+          costo: number
+          kg: number
+        }
+      >
+    >((acc, d) => {
+      const month = d.date.slice(0, 7)
+      const orderedKg = (d.ordered_hl || 0) * conversionFactor
+      const deliveredKg = (d.delivered_hl || 0) * conversionFactor
+      const costo = COSTO_FIJO_ENVIO + orderedKg * COSTO_POR_KG + (d.status === "not_delivered" ? COSTO_REINTENTO : 0)
+      const ingresoBase = deliveredKg * PRECIO_VENTA_POR_KG
+      const ingreso = Math.max(ingresoBase, costo * 1.12)
+
+      if (!acc[month]) {
+        acc[month] = { ingreso: 0, costo: 0, kg: 0 }
+      }
+
+      acc[month].ingreso += ingreso
+      acc[month].costo += costo
+      acc[month].kg += deliveredKg
+      return acc
+    }, {}),
+  )
+    .sort(([a], [b]) => a.localeCompare(b))
+    .slice(-6)
+    .map(([month, values]) => {
+      const utilidad = values.ingreso - values.costo
+      const margenPct = values.ingreso > 0 ? (utilidad / values.ingreso) * 100 : 0
+
+      return {
+        month,
+        ingreso: Math.round(values.ingreso),
+        costo: Math.round(values.costo),
+        utilidad: Math.round(utilidad),
+        margen_pct: Number(margenPct.toFixed(1)),
+      }
+    })
+
+  const costBreakdownData = [
+    { name: "Costo fijo", value: Math.round(costoFijoTotal) },
+    { name: "Costo variable", value: Math.round(costoVariableTotal) },
+    { name: "Incidencias", value: Math.round(costoIncidenciasTotal) },
+  ].filter((item) => item.value > 0)
+
+  const costBreakdownColors = ["#1d4ed8", "#f97316", "#dc2626"]
 
   return (
       <>
@@ -127,17 +211,32 @@ export default function CustomerDetailPage() {
 
             {/* KPI del Cliente */}
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <KpiCard label="Total Rutas" value={totalRutas} icon={<Truck className="h-4 w-4" />} />
-              <KpiCard label="Total Ordenes" value={totalOrdenes} icon={<Package className="h-4 w-4" />} />
+              <KpiCard
+                label="Ingreso Total"
+                value={formatMoney(ingresoTotalCliente)}
+                icon={<DollarSign className="h-4 w-4" />}
+              />
+              <KpiCard
+                label="Costo Total"
+                value={formatMoney(costoTotalCliente)}
+                icon={<Clock className="h-4 w-4" />}
+              />
+              <KpiCard
+                label="Margen Total"
+                value={formatMoney(margenTotalCliente)}
+                icon={<TrendingUp className="h-4 w-4" />}
+                trend={margenTotalCliente >= 0 ? "up" : "down"}
+                trendValue={`${margenPctCliente.toFixed(1)}% margen`}
+              />
+              <KpiCard
+                label="Ratio Costo/Ingreso"
+                value={`${ratioCostoIngreso.toFixed(1)}%`}
+                icon={<PiggyBank className="h-4 w-4" />}
+              />
               <KpiCard
                 label="Capacidad Prom. KG"
                 value={`${capacidadPromedioKg.toFixed(0)} kg`}
                 icon={<Gauge className="h-4 w-4" />}
-              />
-              <KpiCard
-                label="Porcentaje de envios completados"
-                value={`${porcentajeCobertura.toFixed(1)}%`}
-                icon={<Map className="h-4 w-4" />}
               />
               <KpiCard
                 label="Costo Prom. de Envio"
@@ -160,20 +259,114 @@ export default function CustomerDetailPage() {
               />
             </div>
 
-            {/* Delivery Performance Chart (coverage by date and delivered HL) */}
+            <div className="grid gap-6 xl:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Evolución Financiera Mensual</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <ComposedChart data={financialByMonth}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.25 0.02 240)" />
+                      <XAxis dataKey="month" stroke="oklch(0.65 0.01 240)" />
+                      <YAxis
+                        yAxisId="left"
+                        stroke="oklch(0.65 0.01 240)"
+                        tickFormatter={(value) => formatMoneyCompact(Number(value))}
+                      />
+                      <YAxis yAxisId="right" orientation="right" stroke="oklch(0.65 0.01 240)" domain={[-40, 40]} />
+                      <Tooltip
+                        formatter={(value, name) => {
+                          if (name === "Margen %") {
+                            return `${Number(value).toFixed(1)}%`
+                          }
+                          return formatMoney(Number(value))
+                        }}
+                        contentStyle={{
+                          backgroundColor: "#ffffff",
+                          border: "1px solid oklch(0.25 0.02 240)",
+                          borderRadius: "8px",
+                        }}
+                      />
+                      <Legend />
+                      <Bar yAxisId="left" dataKey="ingreso" fill="#16a34a" name="Ingreso" radius={[4, 4, 0, 0]} />
+                      <Bar yAxisId="left" dataKey="costo" fill="#dc2626" name="Costo" radius={[4, 4, 0, 0]} />
+                      <Line
+                        yAxisId="right"
+                        type="monotone"
+                        dataKey="margen_pct"
+                        stroke="#2563eb"
+                        strokeWidth={2}
+                        name="Margen %"
+                        dot={{ r: 3 }}
+                      />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Estructura de Costos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={costBreakdownData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={95}
+                        label={({ name, percent }) => `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`}
+                      >
+                        {costBreakdownData.map((entry, index) => (
+                          <Cell key={entry.name} fill={costBreakdownColors[index % costBreakdownColors.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(value) => formatMoney(Number(value))}
+                        contentStyle={{
+                          backgroundColor: "#ffffff",
+                          border: "1px solid oklch(0.25 0.02 240)",
+                          borderRadius: "8px",
+                        }}
+                      />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
+
+            <ServiceFinancialComboChart
+              customer={customer}
+              conversionFactor={conversionFactor}
+              costoFijoEnvio={COSTO_FIJO_ENVIO}
+              costoPorKg={COSTO_POR_KG}
+              costoReintento={COSTO_REINTENTO}
+              precioVentaPorKg={PRECIO_VENTA_POR_KG}
+            />
+
             <Card>
               <CardHeader>
-                <CardTitle>Rendimiento de Entrega</CardTitle>
+                <CardTitle>Rendimiento Operativo de Entrega</CardTitle>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={performanceData}>
+                  <BarChart data={performanceData.slice(-20)}>
                     <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.25 0.02 240)" />
                     <XAxis dataKey="date" stroke="oklch(0.65 0.01 240)" />
                     <YAxis yAxisId="left" stroke="oklch(0.65 0.01 240)" domain={[0, 100]} />
                     <YAxis yAxisId="right" orientation="right" stroke="oklch(0.65 0.01 240)" />
                     <Tooltip
-                      formatter={(value) => Number(value as number).toLocaleString()}
+                      formatter={(value, name) => {
+                        if (name === "Cumplimiento %") {
+                          return `${Number(value).toFixed(0)}%`
+                        }
+                        return `${Math.round(Number(value)).toLocaleString()} kg`
+                      }}
                       contentStyle={{
                         backgroundColor: "#ffffff",
                         border: "1px solid oklch(0.25 0.02 240)",
@@ -181,23 +374,16 @@ export default function CustomerDetailPage() {
                       }}
                     />
                     <Legend />
-                    <Line
-                      yAxisId="left"
-                      type="monotone"
-                      dataKey="compliance"
-                      stroke="oklch(0.6 0.18 250)"
-                      strokeWidth={2}
-                      name="Cobertura %"
-                    />
+                    <Bar yAxisId="left" dataKey="compliance" fill="#2563eb" name="Cumplimiento %" radius={[4, 4, 0, 0]} />
                     <Line
                       yAxisId="right"
                       type="monotone"
                       dataKey="delivered_kg"
-                      stroke="oklch(0.65 0.18 200)"
+                      stroke="#16a34a"
                       strokeWidth={2}
-                      name="KG Entregado"
+                      name="KG entregado"
                     />
-                  </LineChart>
+                  </BarChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
@@ -257,10 +443,12 @@ export default function CustomerDetailPage() {
                   </div>
                   <div className="flex items-center justify-between rounded-lg border bg-muted/50 p-4">
                     <div>
-                      <div className="text-sm text-muted-foreground">Hectolitros Próximo Mes</div>
-                      <div className="text-2xl font-bold">{customer.prediction.next_month_deliveries * customer.avg_order_hl}</div>
+                      <div className="text-sm text-muted-foreground">KG Próximo Mes</div>
+                      <div className="text-2xl font-bold">
+                        {Math.round(customer.prediction.next_month_deliveries * customer.avg_order_kg).toLocaleString()}
+                      </div>
                     </div>
-                    <Beer className="h-8 w-8 text-chart-3" />
+                    <Package className="h-8 w-8 text-chart-3" />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="rounded-lg border p-4">

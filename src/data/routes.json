@@ -102,6 +102,51 @@
       "actual_time_min": 158
     },
     {
+      "id": "sim-route-01",
+      "center_id": "center-1",
+      "vehicle_id": "vehicle-3",
+      "date": "2025-01-10",
+      "status": "planned",
+      "stops": [
+        {
+          "customer_id": "cust-1",
+          "sequence": 1,
+          "estimated_arrival": "08:15",
+          "estimated_duration_min": 14,
+          "order_kg": 420,
+          "order_hl": 95
+        },
+        {
+          "customer_id": "cust-3",
+          "sequence": 2,
+          "estimated_arrival": "08:50",
+          "estimated_duration_min": 11,
+          "order_kg": 260,
+          "order_hl": 58
+        },
+        {
+          "customer_id": "cust-5",
+          "sequence": 3,
+          "estimated_arrival": "09:25",
+          "estimated_duration_min": 13,
+          "order_kg": 310,
+          "order_hl": 68
+        },
+        {
+          "customer_id": "cust-2",
+          "sequence": 4,
+          "estimated_arrival": "10:00",
+          "estimated_duration_min": 10,
+          "order_kg": 110,
+          "order_hl": 20
+        }
+      ],
+      "estimated_km": 17.1,
+      "estimated_time_min": 112,
+      "capacity_util_pct": 87,
+      "capacity_util_pct_hl": 91
+    },
+    {
       "id": "route-3",
       "center_id": "center-3",
       "vehicle_id": "vehicle-3",

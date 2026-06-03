@@ -74,8 +74,8 @@ export function CustomerCard({ customer }: CustomerCardProps) {
           <div className="flex items-center gap-2 text-sm">
             <Beer className="h-4 w-4 text-muted-foreground" />
             <div>
-              <div className="text-muted-foreground">Pedido Prom. HL</div>
-              <div className="font-medium">{customer.avg_order_hl} hl</div>
+              <div className="text-muted-foreground">Pedido Prom. Kg</div>
+              <div className="font-medium">{customer.avg_order_kg} Kg</div>
             </div>
           </div>
 

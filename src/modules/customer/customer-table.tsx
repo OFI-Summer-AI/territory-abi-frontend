@@ -11,8 +11,8 @@ interface CustomerTableProps {
 }
 
 export function CustomerTable({ customers, onView }: CustomerTableProps) {
-  const COSTO_FIJO_ENVIO = 38000
-  const COSTO_VARIABLE_POR_KG = 14
+  const COSTO_FIJO_ENVIO = 185000
+  const COSTO_VARIABLE_POR_KG = 900
 
   
 
@@ -46,7 +46,7 @@ export function CustomerTable({ customers, onView }: CustomerTableProps) {
       customer.delivery_history?.reduce((sum, delivery) => sum + delivery.ordered_hl * factorKgPorHl, 0) ?? 0
 
     const costoLogistico = totalEntregas * (COSTO_FIJO_ENVIO * 0.4) + totalKgPedido * COSTO_VARIABLE_POR_KG
-    const costoTotal = costoLogistico + totalEntregas * 28000 + totalKgPedido * 8
+    const costoTotal = costoLogistico + totalEntregas * 136000 + totalKgPedido * 510
     const ratio = costoTotal > 0 ? (costoLogistico / costoTotal) * 100 : 0
     return Number(ratio.toFixed(1))
   }

@@ -24,11 +24,11 @@ import {
 import { MapRoutes } from "@/modules/dashboard/components/map-routes"
 
 export default function DashboardPage() {
-  const COSTO_POR_KM = 3200
-  const COSTO_POR_HORA = 50000
-  const COSTO_FIJO_ENVIO = 38000
-  const COSTO_VARIABLE_POR_KG = 14
-  const PRECIO_VENTA_POR_KG = 28
+  const COSTO_POR_KM = 5200
+  const COSTO_POR_HORA = 90000
+  const COSTO_FIJO_ENVIO = 185000
+  const COSTO_VARIABLE_POR_KG = 900
+  const PRECIO_VENTA_POR_KG = 3200
   const OBJETIVO_AHORRO = 0.08
 
   const { viewMode, setViewMode, selectedRouteId, setSelectedRouteId } = useAppStore()
@@ -123,6 +123,14 @@ export default function DashboardPage() {
       maximumFractionDigits: 0,
     }).format(value)
 
+  const formatMoneyCompact = (value: number) =>
+    new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
+      notation: "compact",
+      maximumFractionDigits: 1,
+    }).format(value)
+
   const costoPorRutaData = routes.slice(0, 8).map((route) => {
     const costoRuta = route.estimated_km * COSTO_POR_KM + (route.estimated_time_min / 60) * COSTO_POR_HORA
     return {
@@ -184,7 +192,7 @@ export default function DashboardPage() {
         customer.delivery_history?.reduce((sum, delivery) => sum + delivery.delivered_hl * factorKgPorHl, 0) ?? 0
 
       const costoTotal =
-        totalEntregas * COSTO_FIJO_ENVIO + totalKgPedido * COSTO_VARIABLE_POR_KG + totalEntregas * 28000 + totalKgPedido * 8
+        totalEntregas * COSTO_FIJO_ENVIO + totalKgPedido * COSTO_VARIABLE_POR_KG + totalEntregas * 136000 + totalKgPedido * 510
       const ingresoBase = totalKgEntregado * PRECIO_VENTA_POR_KG
       const ajustePrioridad = customer.priority === "high" ? 0.08 : customer.priority === "medium" ? 0.04 : 0.015
       const ajusteCumplimiento = (1 - tasaCumplimiento) * 0.18
@@ -297,7 +305,7 @@ export default function DashboardPage() {
                   <BarChart data={costoPorRutaData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.25 0.02 240)" />
                     <XAxis dataKey="ruta" stroke="oklch(0.65 0.01 240)" tick={{ fontSize: 11 }} />
-                    <YAxis stroke="oklch(0.65 0.01 240)" tickFormatter={(value) => `${Math.round(value / 1000)}k`} />
+                    <YAxis stroke="oklch(0.65 0.01 240)" tickFormatter={(value) => formatMoneyCompact(Number(value))} />
                     <Tooltip
                       formatter={(value: number) => formatMoney(value)}
                       contentStyle={{
@@ -323,7 +331,7 @@ export default function DashboardPage() {
                   <BarChart data={evolucionFinancieraData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.25 0.02 240)" />
                     <XAxis dataKey="mes" stroke="oklch(0.65 0.01 240)" />
-                    <YAxis stroke="oklch(0.65 0.01 240)" tickFormatter={(value) => `${Math.round(value / 1000)}k`} />
+                    <YAxis stroke="oklch(0.65 0.01 240)" tickFormatter={(value) => formatMoneyCompact(Number(value))} />
                     <Tooltip
                       formatter={(value: number) => formatMoney(value)}
                       contentStyle={{
