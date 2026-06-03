@@ -13,6 +13,17 @@ interface MapRoutesProps {
 // Cache for OSRM routes
 const routeCache = new Map<string, [number, number][]>()
 
+const ROUTE_COLORS = [
+  { main: "#3b82f6", light: "#60a5fa" },
+  { main: "#ef4444", light: "#f87171" },
+  { main: "#10b981", light: "#34d399" },
+  { main: "#f59e0b", light: "#fbbf24" },
+  { main: "#8b5cf6", light: "#a78bfa" },
+  { main: "#ec4899", light: "#f472b6" },
+  { main: "#06b6d4", light: "#22d3ee" },
+  { main: "#84cc16", light: "#a3e635" },
+]
+
 // Function to get real route from OSRM
 async function getOSRMRoute(points: [number, number][]): Promise<[number, number][]> {
   if (points.length < 2) return points
@@ -177,18 +188,6 @@ export function MapRoutes({
           markersRef.current.push(marker)
         })
 
-        // Route colors - vibrant palette
-        const routeColors = [
-          { main: "#3b82f6", light: "#60a5fa" }, // Blue
-          { main: "#ef4444", light: "#f87171" }, // Red
-          { main: "#10b981", light: "#34d399" }, // Green
-          { main: "#f59e0b", light: "#fbbf24" }, // Orange
-          { main: "#8b5cf6", light: "#a78bfa" }, // Purple
-          { main: "#ec4899", light: "#f472b6" }, // Pink
-          { main: "#06b6d4", light: "#22d3ee" }, // Cyan
-          { main: "#84cc16", light: "#a3e635" }, // Lime
-        ]
-
         polylinesRef.current.clear()
         setLoadingRoutes(true)
         
@@ -214,7 +213,7 @@ export function MapRoutes({
           if (!isMounted) return
 
           const isSelected = selectedRouteId === route.id
-          const colorScheme = routeColors[idx % routeColors.length]
+          const colorScheme = ROUTE_COLORS[idx % ROUTE_COLORS.length]
 
           // Outer shadow
           const shadow = L.polyline(routePoints, {
@@ -407,16 +406,16 @@ export function MapRoutes({
 
   return (
     <div className="relative h-full w-full">
-      <div ref={mapRef} className="h-full w-full rounded-lg" />
+      <div ref={mapRef} className="h-full w-full rounded-lg z-0" />
       {loadingRoutes && (
-        <div className="absolute top-4 right-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 backdrop-blur-sm">
+        <div className="absolute top-4 right-4 z-[1000] bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 backdrop-blur-sm pointer-events-none">
           <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin" />
           <span className="font-medium">Calculando rutas óptimas...</span>
         </div>
       )}
       
       {/* Route legend */}
-      <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm p-4 rounded-lg shadow-lg max-w-xs">
+      <div className="absolute bottom-4 left-4 z-[1000] bg-white/95 backdrop-blur-sm p-4 rounded-lg shadow-lg max-w-xs pointer-events-auto">
         <div className="font-bold text-sm mb-2 flex items-center gap-2">
           <span>📍</span> Leyenda
         </div>
@@ -433,6 +432,31 @@ export function MapRoutes({
             <div className="text-blue-500 text-lg">▲</div>
             <span>Dirección de ruta</span>
           </div>
+        </div>
+      </div>
+
+      <div className="absolute bottom-4 right-4 z-[1000] bg-white/95 backdrop-blur-sm p-4 rounded-lg shadow-lg w-64 max-h-56 overflow-y-auto pointer-events-auto">
+        <div className="font-bold text-sm mb-2 flex items-center gap-2">
+          <span>🛣️</span> Colores por ruta
+        </div>
+        <div className="space-y-2 text-xs">
+          {routes.map((route, idx) => {
+            const colorScheme = ROUTE_COLORS[idx % ROUTE_COLORS.length]
+            const isSelected = selectedRouteId === route.id
+
+            return (
+              <div key={route.id} className="flex items-center justify-between gap-2 rounded-md border px-2 py-1.5">
+                <div className="flex items-center gap-2">
+                  <span
+                    className="inline-block h-3 w-6 rounded-sm"
+                    style={{ backgroundColor: colorScheme.main }}
+                  />
+                  <span>{route.id}</span>
+                </div>
+                {isSelected && <span className="text-[10px] font-semibold text-blue-600">Seleccionada</span>}
+              </div>
+            )
+          })}
         </div>
       </div>
     </div>
