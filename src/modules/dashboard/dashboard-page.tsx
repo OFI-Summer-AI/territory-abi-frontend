@@ -315,8 +315,8 @@ export default function DashboardPage() {
                       }}
                     />
                     <Legend />
-                    <Bar dataKey="costo" name="Costo" fill="#ef4444" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="ahorro" name="Ahorro Potencial" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="costo" name="Costo" fill="#ef4444" stackId="operativo" />
+                    <Bar dataKey="ahorro" name="Ahorro Potencial" fill="#22c55e" stackId="operativo" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
