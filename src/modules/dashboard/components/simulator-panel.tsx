@@ -27,7 +27,7 @@ export function SimulatorPanel({
 
   const handleSimulate = () => {
     if (!selectedCenter) {
-      alert("Please select a center")
+      alert("Selecciona un centro")
       return
     }
     onSimulate(selectedCenter, selectedDate)
@@ -36,14 +36,14 @@ export function SimulatorPanel({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Route Simulator</CardTitle>
+        <CardTitle>Simulador de Rutas</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium">Distribution Center</label>
+          <label className="text-sm font-medium">Centro de Distribución</label>
           <Select value={selectedCenter} onValueChange={setSelectedCenter}>
             <SelectTrigger>
-              <SelectValue placeholder="Select center" />
+              <SelectValue placeholder="Seleccionar centro" />
             </SelectTrigger>
             <SelectContent>
               {centers.map((center) => (
@@ -56,7 +56,7 @@ export function SimulatorPanel({
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">Date</label>
+          <label className="text-sm font-medium">Fecha</label>
           <Input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} />
         </div>
 
@@ -65,7 +65,7 @@ export function SimulatorPanel({
             <div className="rounded-lg border p-4 bg-muted/50">
               <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
                 <Truck className="h-4 w-4" />
-                Available Vehicles ({selectedCenterData.vehicles?.length || 0})
+                Vehículos Disponibles ({selectedCenterData.vehicles?.length || 0})
               </h4>
               {selectedCenterData.vehicles && selectedCenterData.vehicles.length > 0 ? (
                 <div className="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto">
@@ -84,18 +84,18 @@ export function SimulatorPanel({
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-muted-foreground">No vehicles available</p>
+                <p className="text-xs text-muted-foreground">No hay vehículos disponibles</p>
               )}
             </div>
 
             <div className="rounded-lg border p-4 bg-muted/50">
               <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
                 <Users className="h-4 w-4" />
-                Available Employees
+                Personal Disponible
               </h4>
               <div className="flex items-center gap-2">
                 <span className="text-2xl font-bold">{selectedCenterData.employees || 0}</span>
-                <span className="text-sm text-muted-foreground">employees available</span>
+                <span className="text-sm text-muted-foreground">empleados disponibles</span>
               </div>
             </div>
           </div>
@@ -103,13 +103,13 @@ export function SimulatorPanel({
 
         <div className="rounded-lg border p-4 bg-muted/50">
           <p className="text-sm text-muted-foreground">
-            The simulator will automatically include all customers assigned to the selected distribution center and generate optimized routes.
+            El simulador incluirá automáticamente todos los clientes asignados al centro de distribución seleccionado y generará rutas optimizadas.
           </p>
         </div>
 
         <Button className="w-full" onClick={handleSimulate} disabled={loading || !selectedCenter}>
           <Play className="mr-2 h-4 w-4" />
-          {loading ? "Generating..." : "Generate Predictions and Analysis"}
+          {loading ? "Generando..." : "Generar Predicciones y Análisis"}
         </Button>
       </CardContent>
     </Card>

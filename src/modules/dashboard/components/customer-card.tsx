@@ -24,15 +24,28 @@ export function CustomerCard({ customer }: CustomerCardProps) {
   const getFrequencyLabel = (frequency: Customer["frequency"]) => {
     switch (frequency) {
       case "daily":
-        return "Daily"
+        return "Diaria"
       case "weekly":
-        return "Weekly"
+        return "Semanal"
       case "biweekly":
-        return "Bi-weekly"
+        return "Quincenal"
       case "monthly":
-        return "Monthly"
+        return "Mensual"
       default:
         return frequency
+    }
+  }
+
+  const getPriorityLabel = (priority: Customer["priority"]) => {
+    switch (priority) {
+      case "high":
+        return "Alta"
+      case "medium":
+        return "Media"
+      case "low":
+        return "Baja"
+      default:
+        return priority
     }
   }
 
@@ -44,7 +57,7 @@ export function CustomerCard({ customer }: CustomerCardProps) {
             <CardTitle>{customer.name}</CardTitle>
             <p className="text-sm text-muted-foreground">{customer.address}</p>
           </div>
-          <Badge className={getPriorityColor(customer.priority)}>{customer.priority}</Badge>
+          <Badge className={getPriorityColor(customer.priority)}>{getPriorityLabel(customer.priority)}</Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -52,7 +65,7 @@ export function CustomerCard({ customer }: CustomerCardProps) {
           <div className="flex items-center gap-2 text-sm">
             <MapPin className="h-4 w-4 text-muted-foreground" />
             <div>
-              <div className="text-muted-foreground">Location</div>
+              <div className="text-muted-foreground">Ubicación</div>
               <div className="font-medium">
                 {customer.lat.toFixed(4)}, {customer.lng.toFixed(4)}
               </div>
@@ -61,7 +74,7 @@ export function CustomerCard({ customer }: CustomerCardProps) {
           <div className="flex items-center gap-2 text-sm">
             <Beer className="h-4 w-4 text-muted-foreground" />
             <div>
-              <div className="text-muted-foreground">Avg Order HL</div>
+              <div className="text-muted-foreground">Pedido Prom. HL</div>
               <div className="font-medium">{customer.avg_order_hl} hl</div>
             </div>
           </div>
@@ -69,7 +82,7 @@ export function CustomerCard({ customer }: CustomerCardProps) {
           <div className="flex items-center gap-2 text-sm">
             <Calendar className="h-4 w-4 text-muted-foreground" />
             <div>
-              <div className="text-muted-foreground">Frequency</div>
+              <div className="text-muted-foreground">Frecuencia</div>
               <div className="font-medium">{getFrequencyLabel(customer.frequency)}</div>
             </div>
           </div>
@@ -77,8 +90,8 @@ export function CustomerCard({ customer }: CustomerCardProps) {
           <div className="flex items-center gap-2 text-sm">
             <AlertCircle className="h-4 w-4 text-muted-foreground" />
             <div>
-              <div className="text-muted-foreground">Status</div>
-              <div className="font-medium">{customer.active ? "Active" : "Inactive"}</div>
+              <div className="text-muted-foreground">Estado</div>
+              <div className="font-medium">{customer.active ? "Activo" : "Inactivo"}</div>
             </div>
           </div>
         </div>

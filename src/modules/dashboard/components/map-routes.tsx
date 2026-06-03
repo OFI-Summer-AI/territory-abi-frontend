@@ -39,7 +39,7 @@ async function getOSRMRoute(points: [number, number][]): Promise<[number, number
       return routePoints
     }
   } catch (error) {
-    console.warn('Error fetching OSRM route, falling back to straight line:', error)
+    console.warn('Error al obtener la ruta OSRM, usando línea recta como alternativa:', error)
   }
   
   return points
@@ -58,6 +58,21 @@ export function MapRoutes({
   const polylinesRef = useRef<Map<string, any>>(new Map())
   const markersRef = useRef<any[]>([])
   const [loadingRoutes, setLoadingRoutes] = useState(false)
+
+  const getRouteStatusLabel = (status: string) => {
+    switch (status) {
+      case "completed":
+        return "completada"
+      case "in_progress":
+        return "en_progreso"
+      case "planned":
+        return "planificada"
+      case "cancelled":
+        return "cancelada"
+      default:
+        return status
+    }
+  }
 
   useEffect(() => {
     if (typeof window === "undefined" || !mapRef.current) return
@@ -262,7 +277,7 @@ export function MapRoutes({
               .bindPopup(`
                 <div style="font-family: system-ui; padding: 4px;">
                   <div style="font-weight: bold; font-size: 13px; color: ${colorScheme.main}; margin-bottom: 4px;">
-                    Stop #${stopNumber}
+                    Parada #${stopNumber}
                   </div>
                   <div style="font-weight: 600; margin-bottom: 2px;">${customer.name}</div>
                   <div style="color: #666; font-size: 11px;">${customer.address}</div>
@@ -343,13 +358,13 @@ export function MapRoutes({
                 border-bottom: 2px solid ${colorScheme.main};
                 color: ${colorScheme.main};
               ">
-                🚚 Route ${route.id}
+                🚚 Ruta ${route.id}
               </div>
               <div style="display: grid; gap: 4px; font-size: 12px;">
-                <div><strong>Status:</strong> ${route.status}</div>
-                <div><strong>Stops:</strong> ${route.stops.length}</div>
-                <div><strong>Distance:</strong> ${route.estimated_km} km</div>
-                <div><strong>Capacity:</strong> ${route.capacity_util_pct}%</div>
+                <div><strong>Estado:</strong> ${getRouteStatusLabel(route.status)}</div>
+                <div><strong>Paradas:</strong> ${route.stops.length}</div>
+                <div><strong>Distancia:</strong> ${route.estimated_km} km</div>
+                <div><strong>Capacidad:</strong> ${route.capacity_util_pct}%</div>
               </div>
             </div>
           `
@@ -396,27 +411,27 @@ export function MapRoutes({
       {loadingRoutes && (
         <div className="absolute top-4 right-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 backdrop-blur-sm">
           <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin" />
-          <span className="font-medium">Calculating optimal routes...</span>
+          <span className="font-medium">Calculando rutas óptimas...</span>
         </div>
       )}
       
       {/* Route legend */}
       <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm p-4 rounded-lg shadow-lg max-w-xs">
         <div className="font-bold text-sm mb-2 flex items-center gap-2">
-          <span>📍</span> Legend
+          <span>📍</span> Leyenda
         </div>
         <div className="space-y-2 text-xs">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-white text-xs">🏢</div>
-            <span>Distribution center</span>
+            <span>Centro de distribución</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">1</div>
-            <span>Numbered stop</span>
+            <span>Parada numerada</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="text-blue-500 text-lg">▲</div>
-            <span>Route direction</span>
+            <span>Dirección de ruta</span>
           </div>
         </div>
       </div>

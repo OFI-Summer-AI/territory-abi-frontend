@@ -28,7 +28,7 @@ export function RouteDetailPanel({ route, customers, onClose }: RouteDetailPanel
   return (
     <Card className="h-full">
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
-        <CardTitle className="text-lg">Route Details</CardTitle>
+        <CardTitle className="text-lg">Detalles de la Ruta</CardTitle>
         <Button variant="ghost" size="sm" onClick={onClose}>
           <X className="h-4 w-4" />
         </Button>
@@ -37,30 +37,38 @@ export function RouteDetailPanel({ route, customers, onClose }: RouteDetailPanel
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">{route.id}</span>
-            <Badge className={getStatusColor(route.status)}>{route.status}</Badge>
+            <Badge className={getStatusColor(route.status)}>
+              {route.status === "completed"
+                ? "completada"
+                : route.status === "in_progress"
+                  ? "en_progreso"
+                  : route.status === "planned"
+                    ? "planificada"
+                    : route.status}
+            </Badge>
           </div>
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div>
-              <span className="text-muted-foreground">Distance:</span>
+              <span className="text-muted-foreground">Distancia:</span>
               <p className="font-medium">{route.estimated_km} km</p>
             </div>
             <div>
-              <span className="text-muted-foreground">Time:</span>
-              <p className="font-medium">{Math.round(route.estimated_time_min / 60)} hrs</p>
+              <span className="text-muted-foreground">Tiempo:</span>
+              <p className="font-medium">{Math.round(route.estimated_time_min / 60)} h</p>
             </div>
             <div>
-              <span className="text-muted-foreground">Capacity:</span>
+              <span className="text-muted-foreground">Capacidad:</span>
               <p className="font-medium">{route.capacity_util_pct}%</p>
             </div>
             <div>
-              <span className="text-muted-foreground">Stops:</span>
+              <span className="text-muted-foreground">Paradas:</span>
               <p className="font-medium">{route.stops.length}</p>
             </div>
           </div>
         </div>
 
         <div className="space-y-2">
-          <h4 className="text-sm font-medium">Stops</h4>
+          <h4 className="text-sm font-medium">Paradas</h4>
           <div className="space-y-2">
             {route.stops.map((stop) => {
               const customer = customers.find((c) => c.id === stop.customer_id)
@@ -96,7 +104,7 @@ export function RouteDetailPanel({ route, customers, onClose }: RouteDetailPanel
         </div>
 
         <Link to={`/routes/${route.id}`} className="block">
-          <Button className="w-full">View Full Details</Button>
+          <Button className="w-full">Ver Detalles Completos</Button>
         </Link>
       </CardContent>
     </Card>

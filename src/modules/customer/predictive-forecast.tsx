@@ -31,12 +31,12 @@ export function PredictiveForecast({ customer }: PredictiveForecastProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Demand Prediction</CardTitle>
+        <CardTitle>Predicción de Demanda</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="mb-4 grid gap-3 md:grid-cols-3">
           <div>
-            <label className="mb-1 block text-sm text-muted-foreground">Start month</label>
+            <label className="mb-1 block text-sm text-muted-foreground">Mes inicial</label>
             <input
               type="month"
               className="w-full rounded-md border bg-background px-3 py-2 text-sm"
@@ -45,7 +45,7 @@ export function PredictiveForecast({ customer }: PredictiveForecastProps) {
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm text-muted-foreground">End month</label>
+            <label className="mb-1 block text-sm text-muted-foreground">Mes final</label>
             <input
               type="month"
               className="w-full rounded-md border bg-background px-3 py-2 text-sm"
@@ -93,7 +93,7 @@ export function PredictiveForecast({ customer }: PredictiveForecastProps) {
             <Area
               type="monotone"
               dataKey="deliveries"
-              name="Pred Deliveries"
+              name="Entregas Previstas"
               stackId="1"
               stroke="oklch(0.6 0.18 250)"
               fill="url(#gradDeliveries)"
@@ -103,7 +103,7 @@ export function PredictiveForecast({ customer }: PredictiveForecastProps) {
             <Area
               type="monotone"
               dataKey="pred_hl"
-              name="Pred Hl"
+              name="HL Previsto"
               stackId="1"
               stroke="oklch(0.65 0.18 200)"
               fill="url(#gradHl)"

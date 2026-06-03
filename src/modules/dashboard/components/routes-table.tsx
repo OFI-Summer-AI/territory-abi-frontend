@@ -32,13 +32,13 @@ export function RoutesTable({ routes, onView, onSimulate }: RoutesTableProps) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Route ID</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Stops</TableHead>
-            <TableHead>Distance</TableHead>
-            <TableHead>Time</TableHead>
-            <TableHead>Capacity KG</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead>ID de Ruta</TableHead>
+            <TableHead>Estado</TableHead>
+            <TableHead>Paradas</TableHead>
+            <TableHead>Distancia</TableHead>
+            <TableHead>Tiempo</TableHead>
+            <TableHead>Capacidad KG</TableHead>
+            <TableHead className="text-right">Acciones</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -46,11 +46,21 @@ export function RoutesTable({ routes, onView, onSimulate }: RoutesTableProps) {
             <TableRow key={route.id}>
               <TableCell className="font-medium">{route.id}</TableCell>
               <TableCell>
-                <Badge className={getStatusColor(route.status)}>{route.status}</Badge>
+                <Badge className={getStatusColor(route.status)}>
+                  {route.status === "completed"
+                    ? "completada"
+                    : route.status === "in_progress"
+                      ? "en_progreso"
+                      : route.status === "planned"
+                        ? "planificada"
+                        : route.status === "cancelled"
+                          ? "cancelada"
+                          : route.status}
+                </Badge>
               </TableCell>
               <TableCell>{route.stops.length}</TableCell>
               <TableCell>{route.estimated_km} km</TableCell>
-              <TableCell>{(route.estimated_time_min / 60).toFixed(1)} hrs</TableCell>
+              <TableCell>{(route.estimated_time_min / 60).toFixed(1)} h</TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
                   <div className="h-2 w-20 overflow-hidden rounded-full bg-muted">

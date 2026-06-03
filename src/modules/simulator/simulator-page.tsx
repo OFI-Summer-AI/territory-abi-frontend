@@ -49,7 +49,7 @@ export default function SimulatorPage() {
       setShowCompliance(true)
     } catch (error) {
       console.error("Error simulating routes:", error)
-      alert("Error generating route proposal. Please try again.")
+      alert("Error al generar la propuesta de ruta. Inténtalo de nuevo.")
     } finally {
       setSimulating(false)
     }
@@ -70,13 +70,13 @@ export default function SimulatorPage() {
   const handleApplySuggestions = (suggestions: OptimizationSuggestion[]) => {
     // TODO: Implement suggestion application
     console.log('Applying suggestions:', suggestions)
-    alert(`Applying ${suggestions.length} optimization suggestions...`)
+    alert(`Aplicando ${suggestions.length} sugerencias de optimización...`)
   }
 
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="text-muted-foreground">Loading simulator...</div>
+        <div className="text-muted-foreground">Cargando simulador...</div>
       </div>
     )
   }
@@ -86,13 +86,13 @@ export default function SimulatorPage() {
         <div className="mb-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-3xl font-bold">Route Simulator & Coverage Analysis</h2>
-              <p className="text-muted-foreground">Generate optimized route proposals and analyze customer coverage</p>
+              <h2 className="text-3xl font-bold">Simulador de Rutas y Análisis de Cobertura</h2>
+              <p className="text-muted-foreground">Genera propuestas de rutas optimizadas y analiza la cobertura de clientes</p>
             </div>
             {simulationResult && (
               <Button variant="outline" onClick={handleReset}>
                 <RotateCcw className="mr-2 h-4 w-4" />
-                Reset
+                Reiniciar
               </Button>
             )}
           </div>
@@ -122,7 +122,7 @@ export default function SimulatorPage() {
                         : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
-                    Route Optimization
+                    Optimización de Rutas
                   </button>
                   {complianceResult && (
                     <button
@@ -133,7 +133,7 @@ export default function SimulatorPage() {
                           : 'text-muted-foreground hover:text-foreground'
                       }`}
                     >
-                      Coverage Analysis
+                      Análisis de Cobertura
                     </button>
                   )}
                 </div>
@@ -149,7 +149,7 @@ export default function SimulatorPage() {
 
                     {/* Proposed Routes */}
                     <div className="space-y-4">
-                      <h3 className="text-xl font-bold">Proposed Routes ({simulationResult.proposed_routes.length})</h3>
+                      <h3 className="text-xl font-bold">Rutas Propuestas ({simulationResult.proposed_routes.length})</h3>
                       <RoutesTable
                         routes={simulationResult.proposed_routes}
                       />
@@ -157,11 +157,11 @@ export default function SimulatorPage() {
 
                     {/* Implementation Note */}
                     <div className="rounded-lg border border-chart-1 bg-chart-1/10 p-4">
-                      <h4 className="font-medium">Implementation Notes</h4>
+                      <h4 className="font-medium">Notas de Implementación</h4>
                       <p className="mt-2 text-sm text-muted-foreground">
-                        This simulation uses a greedy clustering algorithm to group customers by proximity and vehicle
-                        capacity. The proposed routes optimize for capacity utilization while minimizing total distance and
-                        time. Review the routes above and adjust as needed before implementation.
+                        Esta simulación usa un algoritmo de agrupamiento voraz para agrupar clientes por proximidad y
+                        capacidad del vehículo. Las rutas propuestas optimizan la utilización de capacidad minimizando la
+                        distancia y el tiempo totales. Revisa las rutas anteriores y ajústalas según sea necesario antes de implementar.
                       </p>
                     </div>
                   </>
@@ -174,7 +174,7 @@ export default function SimulatorPage() {
                 ) : (
                   <div className="flex h-[400px] items-center justify-center rounded-lg border border-dashed">
                     <div className="text-center">
-                      <p className="text-muted-foreground">Coverage analysis is running...</p>
+                      <p className="text-muted-foreground">El análisis de cobertura está en ejecución...</p>
                     </div>
                   </div>
                 )}
@@ -182,9 +182,9 @@ export default function SimulatorPage() {
             ) : (
               <div className="flex h-[400px] items-center justify-center rounded-lg border border-dashed">
                 <div className="text-center">
-                  <p className="text-muted-foreground">Select a center and click "Generate Route Proposal"</p>
+                  <p className="text-muted-foreground">Selecciona un centro y haz clic en "Generar Propuesta de Ruta"</p>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    The optimizer predicts customer demand and analyzes coverage for all customers in the center
+                    El optimizador predice la demanda de clientes y analiza la cobertura para todos los clientes del centro
                   </p>
                 </div>
               </div>

@@ -68,12 +68,12 @@ export default function RoutesPage() {
         <div className="mb-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-3xl font-bold">Routes</h2>
-              <p className="text-muted-foreground">Manage and view all delivery routes</p>
+              <h2 className="text-3xl font-bold">Rutas</h2>
+              <p className="text-muted-foreground">Gestiona y visualiza todas las rutas de entrega</p>
             </div>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              New Route
+              Nueva Ruta
             </Button>
           </div>
 
@@ -91,12 +91,12 @@ export default function RoutesPage() {
 
         {loading ? (
           <div className="flex h-64 items-center justify-center">
-            <div className="text-muted-foreground">Loading routes...</div>
+            <div className="text-muted-foreground">Cargando rutas...</div>
           </div>
         ) : (
           <div className="space-y-4">
             <div className="text-sm text-muted-foreground">
-              Showing {filteredRoutes.length} of {routes.length} routes
+              Mostrando {filteredRoutes.length} de {routes.length} rutas
             </div>
             <RoutesTable routes={filteredRoutes} onView={(id) => navigate(`/routes/${id}`)} />
           </div>

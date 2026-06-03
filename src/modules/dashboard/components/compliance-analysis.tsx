@@ -41,6 +41,35 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
     }
   }
 
+  const getSeverityLabel = (severity: string) => {
+    switch (severity) {
+      case 'critical': return 'Crítica'
+      case 'high': return 'Alta'
+      case 'medium': return 'Media'
+      case 'low': return 'Baja'
+      default: return 'Desconocida'
+    }
+  }
+
+  const getValidationStatusLabel = (status: string) => {
+    switch (status) {
+      case 'validated': return 'validada'
+      case 'pending': return 'pendiente'
+      case 'rejected': return 'rechazada'
+      default: return status
+    }
+  }
+
+  const getSuggestionTypeLabel = (type: string) => {
+    switch (type) {
+      case 'route_reassignment': return 'reasignación de ruta'
+      case 'schedule_adjustment': return 'ajuste de horario'
+      case 'frequency_optimization': return 'optimización de frecuencia'
+      case 'capacity_rebalance': return 'reequilibrio de capacidad'
+      default: return type.replace('_', ' ')
+    }
+  }
+
   const getIssueIcon = (type: string) => {
     switch (type) {
       case 'frequency': return <Calendar className="h-4 w-4" />
@@ -59,12 +88,12 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
-              Coverage Analysis Overview
+              Resumen de Análisis de Cobertura
             </CardTitle>
             <div className="flex gap-2">
               <Button variant="outline" onClick={onViewMap}>
                 <MapPin className="mr-2 h-4 w-4" />
-                View on Map
+                Ver en Mapa
               </Button>
             </div>
           </div>
@@ -75,35 +104,35 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
               <div className="text-2xl font-bold text-destructive">
                 {non_compliant_clients.length}
               </div>
-              <div className="text-sm text-muted-foreground">Non-Covered Clients</div>
+              <div className="text-sm text-muted-foreground">Clientes No Cubiertos</div>
             </div>
             <div className="space-y-2">
               <div className="text-2xl font-bold text-green-600">
                 {optimization_suggestions.length}
               </div>
-              <div className="text-sm text-muted-foreground">Solutions Available</div>
+              <div className="text-sm text-muted-foreground">Soluciones Disponibles</div>
             </div>
             <div className="space-y-2">
               <div className="text-2xl font-bold text-blue-600">
                 {impact_analysis.improvements.delivery_success_rate_change.toFixed(1)}%
               </div>
-              <div className="text-sm text-muted-foreground">Expected Coverage Improvement</div>
+              <div className="text-sm text-muted-foreground">Mejora Esperada de Cobertura</div>
             </div>
             <div className="space-y-2">
               <div className="text-2xl font-bold text-green-600">
                 {impact_analysis.improvements.efficiency_improvement_hl_km.toFixed(2)}
               </div>
-              <div className="text-sm text-muted-foreground">HL/Km Improvement</div>
+              <div className="text-sm text-muted-foreground">Mejora de HL/Km</div>
             </div>
           </div>
 
           {/* Impact Analysis */}
           <div className="space-y-4">
-            <h4 className="text-lg font-semibold">Expected Impact</h4>
+            <h4 className="text-lg font-semibold">Impacto Esperado</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm">Delivery Success Rate</span>
+                  <span className="text-sm">Tasa de Entrega Exitosa</span>
                   <span className="text-sm font-medium text-green-600">
                     +{impact_analysis.improvements.delivery_success_rate_change.toFixed(1)}%
                   </span>
@@ -117,7 +146,7 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm">Frequency Coverage</span>
+                  <span className="text-sm">Cobertura de Frecuencia</span>
                   <span className="text-sm font-medium text-green-600">
                     +{impact_analysis.improvements.frequency_compliance_improvement.toFixed(1)}%
                   </span>
@@ -144,7 +173,7 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
               : 'text-muted-foreground hover:text-foreground'
           }`}
         >
-          Non-Covered Clients
+          Clientes No Cubiertos
         </button>
         <button
           onClick={() => setActiveTab('solutions')}
@@ -154,7 +183,7 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
               : 'text-muted-foreground hover:text-foreground'
           }`}
         >
-          Optimization Solutions
+          Soluciones de Optimización
         </button>
         <button
           onClick={() => setActiveTab('validation')}
@@ -164,7 +193,7 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
               : 'text-muted-foreground hover:text-foreground'
           }`}
         >
-          Impact Validation
+          Validación de Impacto
         </button>
       </div>
 
@@ -180,28 +209,28 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
                     <p className="text-sm text-muted-foreground">{client.customer.address}</p>
                   </div>
                   <Badge variant={getSeverityColor(client.issues[0]?.severity || 'low')}>
-                    {client.issues[0]?.severity || 'Unknown'} Priority
+                    Prioridad {getSeverityLabel(client.issues[0]?.severity || 'low')}
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-3 gap-4 text-sm">
                   <div>
-                    <div className="font-medium">Success Rate</div>
+                    <div className="font-medium">Tasa de Éxito</div>
                     <div className="text-muted-foreground">
                       {client.current_metrics.delivery_success_rate.toFixed(1)}% 
-                      (Target: {client.target_metrics.delivery_success_rate}%)
+                      (Objetivo: {client.target_metrics.delivery_success_rate}%)
                     </div>
                   </div>
                   <div>
-                    <div className="font-medium">Frequency</div>
+                    <div className="font-medium">Frecuencia</div>
                     <div className="text-muted-foreground">
-                      Every {client.current_metrics.avg_delivery_frequency_days} days
-                      (Target: {client.target_metrics.target_frequency_days} days)
+                      Cada {client.current_metrics.avg_delivery_frequency_days} días
+                      (Objetivo: {client.target_metrics.target_frequency_days} días)
                     </div>
                   </div>
                   <div>
-                    <div className="font-medium">Last Delivery</div>
+                    <div className="font-medium">Última Entrega</div>
                     <div className="text-muted-foreground">
                       {client.current_metrics.last_delivery_date}
                     </div>
@@ -209,7 +238,7 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
                 </div>
 
                 <div className="space-y-2">
-                  <h5 className="font-medium">Issues Identified:</h5>
+                  <h5 className="font-medium">Problemas Identificados:</h5>
                   {client.issues.map((issue, index) => (
                     <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
                       {getIssueIcon(issue.type)}
@@ -218,7 +247,7 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
                         <div className="text-sm text-muted-foreground">{issue.impact}</div>
                       </div>
                       <Badge variant={getSeverityColor(issue.severity)}>
-                        {issue.severity}
+                          {getSeverityLabel(issue.severity)}
                       </Badge>
                     </div>
                   ))}
@@ -232,13 +261,13 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
       {activeTab === 'solutions' && (
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Optimization Suggestions</h3>
+            <h3 className="text-lg font-semibold">Sugerencias de Optimización</h3>
             <Button 
               onClick={() => onApplySuggestions(optimization_suggestions)}
               className="flex items-center gap-2"
             >
               <TrendingUp className="h-4 w-4" />
-              Apply All Solutions
+              Aplicar Todas las Soluciones
             </Button>
           </div>
 
@@ -249,14 +278,14 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
                   <div className="flex-1">
                     <h4 className="font-medium">{suggestion.description}</h4>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Type: {suggestion.type.replace('_', ' ')} • 
+                      Tipo: {getSuggestionTypeLabel(suggestion.type)} • 
                       HL/Km: {suggestion.expected_benefit.efficiency_hl_km.toFixed(2)}
                     </p>
                   </div>
                   <Badge 
                     variant={suggestion.validation_status === 'validated' ? 'default' : 'secondary'}
                   >
-                    {suggestion.validation_status}
+                    {getValidationStatusLabel(suggestion.validation_status)}
                   </Badge>
                 </div>
 
@@ -265,25 +294,25 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
                     <div className="font-medium text-green-600">
                       +{suggestion.expected_benefit.delivery_success_improvement.toFixed(1)}%
                     </div>
-                    <div className="text-muted-foreground">Success Rate</div>
+                    <div className="text-muted-foreground">Tasa de Éxito</div>
                   </div>
                   <div>
                     <div className="font-medium text-blue-600">
                       -{suggestion.expected_benefit.time_reduction_hours.toFixed(1)}h
                     </div>
-                    <div className="text-muted-foreground">Time Saved</div>
+                    <div className="text-muted-foreground">Tiempo Ahorrado</div>
                   </div>
                   <div>
                     <div className="font-medium text-green-600">
                       {suggestion.expected_benefit.efficiency_hl_km.toFixed(2)}
                     </div>
-                    <div className="text-muted-foreground">HL/Km Efficiency</div>
+                    <div className="text-muted-foreground">Eficiencia HL/Km</div>
                   </div>
                   <div>
                     <div className="font-medium">
                       {suggestion.affected_routes.length}
                     </div>
-                    <div className="text-muted-foreground">Routes Affected</div>
+                    <div className="text-muted-foreground">Rutas Afectadas</div>
                   </div>
                 </div>
               </CardContent>
@@ -302,7 +331,7 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
                 ) : (
                   <AlertTriangle className="h-5 w-5 text-yellow-600" />
                 )}
-                Impact Validation
+                Validación de Impacto
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -321,8 +350,8 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
                     validation_results.no_negative_impact ? 'text-green-800' : 'text-yellow-800'
                   }`}>
                     {validation_results.no_negative_impact 
-                      ? 'All proposed changes have been validated. No negative impact on currently compliant clients.'
-                      : 'Some proposed changes may affect currently compliant clients. Review warnings below.'
+                      ? 'Todos los cambios propuestos han sido validados. No hay impacto negativo en los clientes actualmente conformes.'
+                      : 'Algunos cambios propuestos pueden afectar a clientes actualmente conformes. Revisa las advertencias a continuación.'
                     }
                   </p>
                 </div>
@@ -330,7 +359,7 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
 
               {validation_results.warnings.length > 0 && (
                 <div className="space-y-2">
-                  <h5 className="font-medium text-yellow-600">Warnings:</h5>
+                  <h5 className="font-medium text-yellow-600">Advertencias:</h5>
                   {validation_results.warnings.map((warning, index) => (
                     <div key={index} className="p-3 rounded-lg bg-yellow-50 border border-yellow-200">
                       <p className="text-sm text-yellow-800">{warning}</p>
@@ -341,7 +370,7 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
 
               {validation_results.recommendations.length > 0 && (
                 <div className="space-y-2">
-                  <h5 className="font-medium text-blue-600">Recommendations:</h5>
+                  <h5 className="font-medium text-blue-600">Recomendaciones:</h5>
                   {validation_results.recommendations.map((rec, index) => (
                     <div key={index} className="p-3 rounded-lg bg-blue-50 border border-blue-200">
                       <p className="text-sm text-blue-800">{rec}</p>
@@ -351,42 +380,42 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
               )}
 
               <div className="mt-6">
-                <h5 className="font-medium mb-3">Before vs After Comparison</h5>
+                <h5 className="font-medium mb-3">Comparación Antes vs Después</h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
-                    <h6 className="font-medium text-muted-foreground">Current State</h6>
+                    <h6 className="font-medium text-muted-foreground">Estado Actual</h6>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span>Coverage Rate:</span>
+                        <span>Tasa de Cobertura:</span>
                         <span>{impact_analysis.before.compliance_rate.toFixed(1)}%</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>HL/Km Efficiency:</span>
+                        <span>Eficiencia HL/Km:</span>
                         <span>{impact_analysis.before.avg_hl_km_efficiency.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Success Rate:</span>
+                        <span>Tasa de Éxito:</span>
                         <span>{impact_analysis.before.avg_delivery_success_rate.toFixed(1)}%</span>
                       </div>
                     </div>
                   </div>
                   <div className="space-y-4">
-                    <h6 className="font-medium text-green-600">Projected State</h6>
+                    <h6 className="font-medium text-green-600">Estado Proyectado</h6>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span>Coverage Rate:</span>
+                        <span>Tasa de Cobertura:</span>
                         <span className="text-green-600">
                           {impact_analysis.after.compliance_rate.toFixed(1)}%
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span>HL/Km Efficiency:</span>
+                        <span>Eficiencia HL/Km:</span>
                         <span className="text-green-600">
                           {impact_analysis.after.avg_hl_km_efficiency.toFixed(2)}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Success Rate:</span>
+                        <span>Tasa de Éxito:</span>
                         <span className="text-green-600">
                           {impact_analysis.after.avg_delivery_success_rate.toFixed(1)}%
                         </span>

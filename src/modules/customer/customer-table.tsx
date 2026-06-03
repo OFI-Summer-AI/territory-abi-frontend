@@ -69,13 +69,13 @@ export function CustomerTable({ customers, onView }: CustomerTableProps) {
         <TableHeader>
           <TableRow>
             <TableHead>ID</TableHead>
-            <TableHead>Customer</TableHead>
-            <TableHead>Effective Deliveries</TableHead>
-            <TableHead>Covered Deliveries</TableHead>
-            <TableHead>Delivered HL</TableHead>
-            <TableHead>Priority</TableHead>
-            <TableHead>Frequency</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead>Cliente</TableHead>
+            <TableHead>Entregas Efectivas</TableHead>
+            <TableHead>Entregas Cubiertas</TableHead>
+            <TableHead>HL Entregado</TableHead>
+            <TableHead>Prioridad</TableHead>
+            <TableHead>Frecuencia</TableHead>
+            <TableHead className="text-right">Acciones</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -95,8 +95,8 @@ export function CustomerTable({ customers, onView }: CustomerTableProps) {
                 </TableCell>
                 <TableCell>
                   <div className="text-sm">
-                    <div className="text-green-600 font-medium">{deliveryStats.effective} effective</div>
-                    <div className="text-red-600">{deliveryStats.ineffective} ineffective</div>
+                    <div className="text-green-600 font-medium">{deliveryStats.effective} efectivas</div>
+                    <div className="text-red-600">{deliveryStats.ineffective} inefectivas</div>
                   </div>
                 </TableCell>
                 <TableCell>
@@ -115,19 +115,19 @@ export function CustomerTable({ customers, onView }: CustomerTableProps) {
                 </TableCell>
                 <TableCell>
                   <div className="text-sm font-medium">{totalHL.toLocaleString()} HL</div>
-                  <div className="text-xs text-muted-foreground">Average: {customer.avg_order_hl} HL</div>
+                  <div className="text-xs text-muted-foreground">Promedio: {customer.avg_order_hl} HL</div>
                 </TableCell>
                 <TableCell>
                   <Badge className={getPriorityColor(customer.priority)}>
-                    {customer.priority === "high" ? "High" : 
-                     customer.priority === "medium" ? "Medium" : "Low"}
+                    {customer.priority === "high" ? "Alta" : 
+                     customer.priority === "medium" ? "Media" : "Baja"}
                   </Badge>
                 </TableCell>
                 <TableCell>
                   <Badge className={getFrequencyColor(customer.frequency)}>
-                    {customer.frequency === "daily" ? "Daily" :
-                     customer.frequency === "weekly" ? "Weekly" :
-                     customer.frequency === "biweekly" ? "Bi-weekly" : "Monthly"}
+                    {customer.frequency === "daily" ? "Diaria" :
+                     customer.frequency === "weekly" ? "Semanal" :
+                     customer.frequency === "biweekly" ? "Quincenal" : "Mensual"}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">

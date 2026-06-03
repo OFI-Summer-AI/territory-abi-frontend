@@ -40,13 +40,13 @@ export default function RouteDetailPage() {
 
   const handleMarkExecuted = () => {
     // Mock action
-    alert("Route marked as executed (mock action)")
+    alert("Ruta marcada como ejecutada (acción simulada)")
   }
 
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="text-muted-foreground">Loading route details...</div>
+        <div className="text-muted-foreground">Cargando detalles de la ruta...</div>
       </div>
     )
   }
@@ -55,9 +55,9 @@ export default function RouteDetailPage() {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <p className="text-muted-foreground">Route not found</p>
+          <p className="text-muted-foreground">Ruta no encontrada</p>
           <Button className="mt-4" onClick={() => navigate('/')}>
-            Back to Routes
+            Volver a Rutas
           </Button>
         </div>
       </div>
@@ -86,14 +86,22 @@ export default function RouteDetailPage() {
         <div className="mb-6">
           <Button variant="ghost" size="sm" className="mb-4" onClick={() => navigate(-1)}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Routes
+            Volver a Rutas
           </Button>
 
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-3">
                 <h2 className="text-3xl font-bold">{route.id}</h2>
-                <Badge className={getStatusColor(route.status)}>{route.status}</Badge>
+                <Badge className={getStatusColor(route.status)}>
+                  {route.status === "completed"
+                    ? "completada"
+                    : route.status === "in_progress"
+                      ? "en_progreso"
+                      : route.status === "planned"
+                        ? "planificada"
+                        : route.status}
+                </Badge>
               </div>
               <p className="text-muted-foreground">
                 {route.center.name} • {route.date}
@@ -102,7 +110,7 @@ export default function RouteDetailPage() {
             {route.status !== "completed" && (
               <Button onClick={handleMarkExecuted}>
                 <CheckCircle className="mr-2 h-4 w-4" />
-                Mark as Executed
+                Marcar como Ejecutada
               </Button>
             )}
           </div>
@@ -113,7 +121,7 @@ export default function RouteDetailPage() {
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle>Route Map</CardTitle>
+                <CardTitle>Mapa de Ruta</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-[500px] overflow-hidden rounded-lg">
@@ -131,7 +139,7 @@ export default function RouteDetailPage() {
             {/* Stops List */}
             <Card className="mt-6">
               <CardHeader>
-                <CardTitle>Stops ({route.stops.length})</CardTitle>
+                <CardTitle>Paradas ({route.stops.length})</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -151,7 +159,7 @@ export default function RouteDetailPage() {
                               <p className="text-sm text-muted-foreground">{customer.address}</p>
                             </div>
                             <Button variant="ghost" size="sm" onClick={() => navigate(`/customers/${customer.id}`)}>
-                              View
+                              Ver
                             </Button>
                           </div>
                           <div className="mt-2 flex flex-wrap gap-4 text-sm text-muted-foreground">
@@ -185,40 +193,40 @@ export default function RouteDetailPage() {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Route KPIs</CardTitle>
+                <CardTitle>KPIs de Ruta</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <div className="text-sm text-muted-foreground">Estimated Distance</div>
+                  <div className="text-sm text-muted-foreground">Distancia Estimada</div>
                   <div className="text-2xl font-bold">{route.estimated_km} km</div>
-                  {route.actual_km && <div className="text-sm text-muted-foreground">Actual: {route.actual_km} km</div>}
+                  {route.actual_km && <div className="text-sm text-muted-foreground">Real: {route.actual_km} km</div>}
                 </div>
 
                 <div>
-                  <div className="text-sm text-muted-foreground">Estimated Time</div>
-                  <div className="text-2xl font-bold">{Math.round(route.estimated_time_min / 60)} hrs</div>
+                  <div className="text-sm text-muted-foreground">Tiempo Estimado</div>
+                  <div className="text-2xl font-bold">{Math.round(route.estimated_time_min / 60)} h</div>
                   {route.actual_time_min && (
                     <div className="text-sm text-muted-foreground">
-                      Actual: {Math.round(route.actual_time_min / 60)} hrs
+                      Real: {Math.round(route.actual_time_min / 60)} h
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <div className="text-sm text-muted-foreground">Capacity Utilization KG</div>
+                  <div className="text-sm text-muted-foreground">Utilización de Capacidad KG</div>
                   <div className="text-2xl font-bold">{route.capacity_util_pct}%</div>
                   <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
                     <div className="h-full bg-blue-400" style={{ width: `${route.capacity_util_pct}%` }} />
                   </div>
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">Total Weight</div>
+                  <div className="text-sm text-muted-foreground">Peso Total</div>
                   <div className="text-2xl font-bold">
                     {route.stops.reduce((sum, stop) => sum + stop.order_kg, 0)} kg
                   </div>
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">Capacity Utilization HL</div>
+                  <div className="text-sm text-muted-foreground">Utilización de Capacidad HL</div>
                   <div className="text-2xl font-bold">{route.capacity_util_pct_hl}%</div>
                   <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
                     <div className="h-full bg-blue-400" style={{ width: `${route.capacity_util_pct_hl}%` }} />
@@ -226,19 +234,19 @@ export default function RouteDetailPage() {
                 </div>
 
                 <div>
-                  <div className="text-sm text-muted-foreground">Total Weight HL</div>
+                  <div className="text-sm text-muted-foreground">Peso Total HL</div>
                   <div className="text-2xl font-bold">
                     {route.stops.reduce((sum, stop) => sum + stop.order_hl, 0)} hl
                   </div>
                 </div>
 
                 <div>
-                  <div className="text-sm text-muted-foreground">Number of Stops</div>
+                  <div className="text-sm text-muted-foreground">Número de Paradas</div>
                   <div className="text-2xl font-bold">{route.stops.length}</div>
                 </div>
 
                 <div>
-                  <div className="text-sm text-muted-foreground">Coverage Percentage</div>
+                  <div className="text-sm text-muted-foreground">Porcentaje de Cobertura</div>
                   <div className="text-2xl font-bold">
                     {Math.max(90, Math.round(90 + (route.stops.length / Math.max(1, route.stops.length)) * 10))}%
                   </div>
@@ -254,23 +262,23 @@ export default function RouteDetailPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Center Information</CardTitle>
+                <CardTitle>Información del Centro</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <div>
-                  <div className="text-sm text-muted-foreground">Name</div>
+                  <div className="text-sm text-muted-foreground">Nombre</div>
                   <div className="font-medium">{route.center.name}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">Address</div>
+                  <div className="text-sm text-muted-foreground">Dirección</div>
                   <div className="font-medium">{route.center.address}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">Capacity KG</div>
+                  <div className="text-sm text-muted-foreground">Capacidad KG</div>
                   <div className="font-medium">{route.center.capacity_kg.toLocaleString()} kg</div>
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">Capacity HL</div>
+                  <div className="text-sm text-muted-foreground">Capacidad HL</div>
                   <div className="font-medium">{route.center.capacity_hl.toLocaleString()} hl</div>
                 </div>
               </CardContent>

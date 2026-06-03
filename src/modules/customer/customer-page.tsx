@@ -41,7 +41,7 @@ export default function CustomerDetailPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="text-muted-foreground">Loading customer details...</div>
+        <div className="text-muted-foreground">Cargando detalles del cliente...</div>
       </div>
     )
   }
@@ -50,8 +50,8 @@ export default function CustomerDetailPage() {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <p className="text-muted-foreground">Customer not found</p>
-          <Button className="mt-4" onClick={() => navigate('/')}>Back to Dashboard</Button>
+          <p className="text-muted-foreground">Cliente no encontrado</p>
+          <Button className="mt-4" onClick={() => navigate('/')}>Volver al Panel</Button>
         </div>
       </div>
     )
@@ -82,12 +82,12 @@ export default function CustomerDetailPage() {
         <div className="mb-6">
           <Button variant="ghost" size="sm" className="mb-4" onClick={() => navigate(-1)}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
+            Volver al Panel
           </Button>
 
           <div>
-            <h2 className="text-3xl font-bold">Customer Details</h2>
-            <p className="text-muted-foreground">View and manage customer information</p>
+            <h2 className="text-3xl font-bold">Detalles del Cliente</h2>
+            <p className="text-muted-foreground">Ver y gestionar información del cliente</p>
           </div>
         </div>
 
@@ -100,7 +100,7 @@ export default function CustomerDetailPage() {
             {/* Delivery Performance Chart (coverage by date and delivered HL) */}
             <Card>
               <CardHeader>
-                <CardTitle>Delivery Performance</CardTitle>
+                <CardTitle>Rendimiento de Entrega</CardTitle>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
@@ -124,7 +124,7 @@ export default function CustomerDetailPage() {
                       dataKey="compliance"
                       stroke="oklch(0.6 0.18 250)"
                       strokeWidth={2}
-                      name="Coverage %"
+                      name="Cobertura %"
                     />
                     <Line
                       yAxisId="right"
@@ -132,7 +132,7 @@ export default function CustomerDetailPage() {
                       dataKey="delivered_hl"
                       stroke="oklch(0.65 0.18 200)"
                       strokeWidth={2}
-                      name="Delivered HL"
+                      name="HL Entregado"
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -147,33 +147,33 @@ export default function CustomerDetailPage() {
             {/* Quick Stats */}
             <Card>
               <CardHeader>
-                <CardTitle>Quick Stats</CardTitle>
+                <CardTitle>Estadísticas Rápidas</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
-                  <div className="text-sm text-muted-foreground">Total Deliveries</div>
+                  <div className="text-sm text-muted-foreground">Entregas Totales</div>
                   <div className="text-xl font-bold">{totalDeliveries}</div>
                 </div>
 
                 <div>
-                  <div className="text-sm text-muted-foreground">Completed Deliveries</div>
+                  <div className="text-sm text-muted-foreground">Entregas Completadas</div>
                   <div className="text-xl font-bold">{completedDeliveries}</div>
                 </div>
 
                 <div>
-                  <div className="text-sm text-muted-foreground">Failed Deliveries</div>
+                  <div className="text-sm text-muted-foreground">Entregas Fallidas</div>
                   <div className="text-xl font-bold">{failedDeliveries}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">Coverage Rate</div>
+                  <div className="text-sm text-muted-foreground">Tasa de Cobertura</div>
                   <div className="text-xl font-bold">{completionRate}%</div>
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">Total Delivered (HL)</div>
+                  <div className="text-sm text-muted-foreground">Total Entregado (HL)</div>
                   <div className="text-xl font-bold">{totalDeliveredHL.toLocaleString()} hl</div>
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">Avg HL per Delivery</div>
+                  <div className="text-sm text-muted-foreground">HL Prom. por Entrega</div>
                   <div className="text-xl font-bold">{avgHLPerDelivery} hl</div>
                 </div>
               </CardContent>
@@ -181,27 +181,27 @@ export default function CustomerDetailPage() {
             {/* Prediction */}
             <Card>
               <CardHeader>
-                <CardTitle>Demand Prediction</CardTitle>
+                <CardTitle>Predicción de Demanda</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between rounded-lg border bg-muted/50 p-4">
                     <div>
-                      <div className="text-sm text-muted-foreground">Next Month Deliveries</div>
+                      <div className="text-sm text-muted-foreground">Entregas Próximo Mes</div>
                       <div className="text-2xl font-bold">{customer.prediction.next_month_deliveries}</div>
                     </div>
                     <TrendingUp className="h-8 w-8 text-chart-2" />
                   </div>
                   <div className="flex items-center justify-between rounded-lg border bg-muted/50 p-4">
                     <div>
-                      <div className="text-sm text-muted-foreground">Next Month Hectoliters</div>
+                      <div className="text-sm text-muted-foreground">Hectolitros Próximo Mes</div>
                       <div className="text-2xl font-bold">{customer.prediction.next_month_deliveries * customer.avg_order_hl}</div>
                     </div>
                     <Beer className="h-8 w-8 text-chart-3" />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="rounded-lg border p-4">
-                      <div className="text-sm text-muted-foreground">Confidence</div>
+                      <div className="text-sm text-muted-foreground">Confianza</div>
                       <div className="text-xl font-bold">{Math.round(customer.prediction.confidence * 100)}%</div>
                       <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
                         <div
@@ -212,14 +212,14 @@ export default function CustomerDetailPage() {
                     </div>
 
                     <div className="rounded-lg border p-4">
-                      <div className="text-sm text-muted-foreground">Trend</div>
+                      <div className="text-sm text-muted-foreground">Tendencia</div>
                       <div className="text-xl font-bold capitalize">{customer.prediction.trend}</div>
                     </div>
                   </div>
 
                   <p className="text-sm text-muted-foreground">
-                    Based on historical data and seasonal patterns, we predict this customer will require approximately{" "}
-                    {customer.prediction.next_month_deliveries} deliveries next month.
+                    Con base en datos históricos y patrones estacionales, estimamos que este cliente requerirá aproximadamente{" "}
+                    {customer.prediction.next_month_deliveries} entregas el próximo mes.
                   </p>
                 </div>
               </CardContent>

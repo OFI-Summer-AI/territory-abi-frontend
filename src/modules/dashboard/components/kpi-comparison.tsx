@@ -24,23 +24,23 @@ export function KpiComparison({ current, proposed, savings }: KpiComparisonProps
         {/* Current KPIs */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Current Performance</CardTitle>
+            <CardTitle className="text-lg">Rendimiento Actual</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
-              <div className="text-sm text-muted-foreground">Total Routes</div>
+              <div className="text-sm text-muted-foreground">Rutas Totales</div>
               <div className="text-2xl font-bold">{current.total_routes}</div>
             </div>
             <div>
-              <div className="text-sm text-muted-foreground">Total Distance</div>
+              <div className="text-sm text-muted-foreground">Distancia Total</div>
               <div className="text-2xl font-bold">{current.total_km} km</div>
             </div>
             <div>
-              <div className="text-sm text-muted-foreground">Total Time</div>
-              <div className="text-2xl font-bold">{current.total_time_hours} hrs</div>
+              <div className="text-sm text-muted-foreground">Tiempo Total</div>
+              <div className="text-2xl font-bold">{current.total_time_hours} h</div>
             </div>
             <div>
-              <div className="text-sm text-muted-foreground">Avg Capacity</div>
+              <div className="text-sm text-muted-foreground">Capacidad Prom.</div>
               <div className="text-2xl font-bold">{current.avg_capacity_util}%</div>
             </div>
           </CardContent>
@@ -49,11 +49,11 @@ export function KpiComparison({ current, proposed, savings }: KpiComparisonProps
         {/* Proposed KPIs */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Proposed Performance</CardTitle>
+            <CardTitle className="text-lg">Rendimiento Propuesto</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
-              <div className="text-sm text-muted-foreground">Total Routes</div>
+              <div className="text-sm text-muted-foreground">Rutas Totales</div>
               <div className="flex items-center gap-2">
                 <div className="text-2xl font-bold">{proposed.total_routes}</div>
                 {proposed.total_routes < current.total_routes && (
@@ -65,7 +65,7 @@ export function KpiComparison({ current, proposed, savings }: KpiComparisonProps
               </div>
             </div>
             <div>
-              <div className="text-sm text-muted-foreground">Total Distance</div>
+              <div className="text-sm text-muted-foreground">Distancia Total</div>
               <div className="flex items-center gap-2">
                 <div className="text-2xl font-bold">{proposed.total_km} km</div>
                 {proposed.total_km < current.total_km && (
@@ -77,9 +77,9 @@ export function KpiComparison({ current, proposed, savings }: KpiComparisonProps
               </div>
             </div>
             <div>
-              <div className="text-sm text-muted-foreground">Total Time</div>
+              <div className="text-sm text-muted-foreground">Tiempo Total</div>
               <div className="flex items-center gap-2">
-                <div className="text-2xl font-bold">{proposed.total_time_hours} hrs</div>
+                <div className="text-2xl font-bold">{proposed.total_time_hours} h</div>
                 {proposed.total_time_hours < current.total_time_hours && (
                   <span className="flex items-center text-sm text-chart-2">
                     <TrendingDown className="h-4 w-4" />
@@ -89,7 +89,7 @@ export function KpiComparison({ current, proposed, savings }: KpiComparisonProps
               </div>
             </div>
             <div>
-              <div className="text-sm text-muted-foreground">Avg Capacity</div>
+              <div className="text-sm text-muted-foreground">Capacidad Prom.</div>
               <div className="flex items-center gap-2">
                 <div className="text-2xl font-bold">{proposed.avg_capacity_util}%</div>
                 {proposed.avg_capacity_util > current.avg_capacity_util && (
@@ -107,20 +107,20 @@ export function KpiComparison({ current, proposed, savings }: KpiComparisonProps
       {/* Savings Summary */}
       <Card className="border-chart-2 bg-chart-2/10">
         <CardHeader>
-          <CardTitle className="text-lg">Estimated Savings</CardTitle>
+          <CardTitle className="text-lg">Ahorro Estimado</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-3">
             <div>
-              <div className="text-sm text-muted-foreground">Distance Saved</div>
+              <div className="text-sm text-muted-foreground">Distancia Ahorrada</div>
               <div className="text-2xl font-bold text-chart-2">{savings.km_saved} km</div>
             </div>
             <div>
-              <div className="text-sm text-muted-foreground">Time Saved</div>
-              <div className="text-2xl font-bold text-chart-2">{savings.time_saved_hours} hrs</div>
+              <div className="text-sm text-muted-foreground">Tiempo Ahorrado</div>
+              <div className="text-2xl font-bold text-chart-2">{savings.time_saved_hours} h</div>
             </div>
             <div>
-              <div className="text-sm text-muted-foreground">Routes Reduced</div>
+              <div className="text-sm text-muted-foreground">Rutas Reducidas</div>
               <div className="text-2xl font-bold text-chart-2">{current.total_routes - proposed.total_routes}</div>
             </div>
           </div>

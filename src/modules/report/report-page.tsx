@@ -56,8 +56,8 @@ export default function ReportsPage() {
   // Chart data for visualization
   const chartData = comparisonData.slice(0, 8).map((item) => ({
     name: item.customer_name,
-    Ordered: item.proposed_hl,
-    Delivered: item.delivered_hl,
+    Pedidos: item.proposed_hl,
+    Entregados: item.delivered_hl,
   }))
 
   // Summary statistics
@@ -69,7 +69,7 @@ export default function ReportsPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="text-muted-foreground">Loading reports...</div>
+        <div className="text-muted-foreground">Cargando informes...</div>
       </div>
     )
   }
@@ -79,8 +79,8 @@ export default function ReportsPage() {
         <div className="mb-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-3xl font-bold">Customer Delivery Reports</h2>
-              <p className="text-muted-foreground">Compare ordered vs delivered hectoliters and export customer data</p>
+              <h2 className="text-3xl font-bold">Informes de Entrega de Clientes</h2>
+              <p className="text-muted-foreground">Compara hectolitros pedidos vs entregados y exporta datos de clientes</p>
             </div>
             <ExportButton data={comparisonData} filename={`customer-delivery-report-${dateRange.start}`} />
           </div>
@@ -97,7 +97,7 @@ export default function ReportsPage() {
                     onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
                     className="w-[180px]"
                   />
-                  <span className="text-muted-foreground">to</span>
+                  <span className="text-muted-foreground">a</span>
                   <Input
                     type="date"
                     value={dateRange.end}
@@ -114,7 +114,7 @@ export default function ReportsPage() {
         <div className="mb-6 grid gap-4 md:grid-cols-4">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Customers</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total de Clientes</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{customers.length}</div>
@@ -123,7 +123,7 @@ export default function ReportsPage() {
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Ordered (HL)</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Pedido (HL)</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totalOrderedHL.toFixed(1)} HL</div>
@@ -132,7 +132,7 @@ export default function ReportsPage() {
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Delivered (HL)</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Entregado (HL)</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totalDeliveredHL.toFixed(1)} HL</div>
@@ -141,7 +141,7 @@ export default function ReportsPage() {
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Delivery Variance</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Variación de Entrega</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
@@ -159,7 +159,7 @@ export default function ReportsPage() {
         {/* Comparison Chart */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Ordered vs Delivered Hectoliters</CardTitle>
+            <CardTitle>Hectolitros Pedidos vs Entregados</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={400}>
@@ -168,7 +168,7 @@ export default function ReportsPage() {
                 <XAxis dataKey="name" stroke="oklch(0.65 0.01 240)" />
                 <YAxis
                   stroke="oklch(0.65 0.01 240)"
-                  label={{ value: "Hectoliters (HL)", angle: -90, position: "insideLeft" }}
+                  label={{ value: "Hectolitros (HL)", angle: -90, position: "insideLeft" }}
                 />
                 <Tooltip
                   contentStyle={{
@@ -178,8 +178,8 @@ export default function ReportsPage() {
                   }}
                 />
                 <Legend />
-                <Bar dataKey="Ordered" fill="#FF0000" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Delivered" fill="#F5B027" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Pedidos" fill="#FF0000" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Entregados" fill="#F5B027" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -188,20 +188,20 @@ export default function ReportsPage() {
         {/* Detailed Comparison Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Detailed Customer Delivery Comparison</CardTitle>
+            <CardTitle>Comparación Detallada de Entregas por Cliente</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
-                    <th className="p-3 text-left text-sm font-medium text-muted-foreground">Customer</th>
-                    <th className="p-3 text-left text-sm font-medium text-muted-foreground">Priority</th>
-                    <th className="p-3 text-right text-sm font-medium text-muted-foreground">Ordered (HL)</th>
-                    <th className="p-3 text-right text-sm font-medium text-muted-foreground">Delivered (HL)</th>
-                    <th className="p-3 text-right text-sm font-medium text-muted-foreground">Variance</th>
-                    <th className="p-3 text-right text-sm font-medium text-muted-foreground">Coverage Rate</th>
-                    <th className="p-3 text-right text-sm font-medium text-muted-foreground">Total Deliveries</th>
+                    <th className="p-3 text-left text-sm font-medium text-muted-foreground">Cliente</th>
+                    <th className="p-3 text-left text-sm font-medium text-muted-foreground">Prioridad</th>
+                    <th className="p-3 text-right text-sm font-medium text-muted-foreground">Pedido (HL)</th>
+                    <th className="p-3 text-right text-sm font-medium text-muted-foreground">Entregado (HL)</th>
+                    <th className="p-3 text-right text-sm font-medium text-muted-foreground">Variación</th>
+                    <th className="p-3 text-right text-sm font-medium text-muted-foreground">Tasa de Cobertura</th>
+                    <th className="p-3 text-right text-sm font-medium text-muted-foreground">Entregas Totales</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -222,7 +222,7 @@ export default function ReportsPage() {
                                   : "bg-green-50 text-green-800"
                             }`}
                           >
-                            {item.priority}
+                            {item.priority === "high" ? "alta" : item.priority === "medium" ? "media" : "baja"}
                           </span>
                         </td>
                         <td className="p-3 text-right">{item.proposed_hl.toFixed(1)}</td>
@@ -248,32 +248,32 @@ export default function ReportsPage() {
         {/* Insights */}
         <Card className="mt-6">
           <CardHeader>
-            <CardTitle>Key Insights</CardTitle>
+            <CardTitle>Conclusiones Clave</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="rounded-lg border bg-muted/50 p-4">
-              <h4 className="font-medium">Delivery Performance</h4>
+              <h4 className="font-medium">Rendimiento de Entrega</h4>
               <p className="mt-1 text-sm text-muted-foreground">
                 {variance > 0
-                  ? `Delivered hectoliters exceeded ordered amount by ${variance.toFixed(1)} HL (${variancePercent}%). This may indicate over-delivery or data discrepancies.`
-                  : `Delivered hectoliters were ${Math.abs(variance).toFixed(1)} HL less than ordered (${Math.abs(Number.parseFloat(variancePercent))}%). Consider reviewing delivery processes.`}
+                  ? `Los hectolitros entregados superaron lo pedido en ${variance.toFixed(1)} HL (${variancePercent}%). Esto puede indicar sobreentrega o discrepancias de datos.`
+                  : `Los hectolitros entregados fueron ${Math.abs(variance).toFixed(1)} HL menos que lo pedido (${Math.abs(Number.parseFloat(variancePercent))}%). Considera revisar los procesos de entrega.`}
               </p>
             </div>
 
             <div className="rounded-lg border bg-muted/50 p-4">
-              <h4 className="font-medium">Customer Coverage Rate</h4>
+              <h4 className="font-medium">Tasa de Cobertura de Clientes</h4>
               <p className="mt-1 text-sm text-muted-foreground">
-                Average coverage rate across all customers is{" "}
+                La tasa promedio de cobertura de todos los clientes es{" "}
                 {(comparisonData.reduce((sum, item) => sum + item.completion_rate, 0) / comparisonData.length).toFixed(1)}
-                %. Aim for 90%+ for optimal customer satisfaction.
+                %. Apunta a 90%+ para una satisfacción óptima del cliente.
               </p>
             </div>
 
             <div className="rounded-lg border bg-muted/50 p-4">
-              <h4 className="font-medium">High Priority Customers</h4>
+              <h4 className="font-medium">Clientes de Alta Prioridad</h4>
               <p className="mt-1 text-sm text-muted-foreground">
-                {comparisonData.filter((item) => item.priority === "high").length} high priority customers out of {comparisonData.length} total customers.
-                Focus on maintaining high delivery rates for these customers.
+                {comparisonData.filter((item) => item.priority === "high").length} clientes de alta prioridad de un total de {comparisonData.length} clientes.
+                Enfócate en mantener altas tasas de entrega para estos clientes.
               </p>
             </div>
           </CardContent>

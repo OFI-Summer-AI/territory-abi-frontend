@@ -44,10 +44,38 @@ export default function DashboardPage() {
 
   const selectedCustomer = customers.find((c) => c.id === selectedCustomerId)
 
+  const getPriorityLabel = (priority: string) => {
+    switch (priority) {
+      case "high":
+        return "Alta"
+      case "medium":
+        return "Media"
+      case "low":
+        return "Baja"
+      default:
+        return priority
+    }
+  }
+
+  const getFrequencyLabel = (frequency: string) => {
+    switch (frequency) {
+      case "daily":
+        return "Diaria"
+      case "weekly":
+        return "Semanal"
+      case "biweekly":
+        return "Quincenal"
+      case "monthly":
+        return "Mensual"
+      default:
+        return frequency
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="text-muted-foreground">Loading dashboard...</div>
+        <div className="text-muted-foreground">Cargando panel...</div>
       </div>
     )
   }
@@ -56,39 +84,39 @@ export default function DashboardPage() {
       <>
         <div className="mb-6 space-y-4">
           <div>
-            <h2 className="text-3xl font-bold">Dashboard</h2>
-            <p className="text-muted-foreground">Overview of delivery operations for January 10, 2025</p>
+            <h2 className="text-3xl font-bold">Panel</h2>
+            <p className="text-muted-foreground">Resumen de operaciones de entrega del 10 de enero de 2025</p>
           </div>
 
           {/* KPIs */}
           {kpis && (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-              <KpiCard label="Total Routes" value={kpis.total_routes} icon={<Truck className="h-4 w-4" />} />
-              <KpiCard label="Customers Served" value={kpis.total_customers} icon={<Users className="h-4 w-4" />} />
+              <KpiCard label="Rutas Totales" value={kpis.total_routes} icon={<Truck className="h-4 w-4" />} />
+              <KpiCard label="Clientes Atendidos" value={kpis.total_customers} icon={<Users className="h-4 w-4" />} />
               <KpiCard
-                label="Avg Capacity KG"
+                label="Capacidad Prom. KG"
                 value={`${kpis.avg_capacity_util}%`}
                 icon={<Gauge className="h-4 w-4" />}
                 trend="up"
                 trendValue="+5%"
               />
               <KpiCard
-                label="Coverage Percentage"
+                label="Porcentaje de Cobertura"
                 value="84%"
                 icon={<Map className="h-4 w-4" />}
                 trend="up"
                 trendValue="80%"
               />
               <KpiCard
-                label="Total Distance"
+                label="Distancia Total"
                 value={`${kpis.total_km} km`}
                 icon={<Map className="h-4 w-4" />}
                 trend="down"
                 trendValue="-8%"
               />
               <KpiCard
-                label="Total Time"
-                value={`${kpis.total_time_hours} hrs`}
+                label="Tiempo Total"
+                value={`${kpis.total_time_hours} h`}
                 icon={<Clock className="h-4 w-4" />}
                 trend="down"
                 trendValue="-3%"
@@ -100,7 +128,7 @@ export default function DashboardPage() {
           <div className="flex items-center gap-2">
             <Button variant={viewMode === "map" ? "default" : "outline"} size="sm" onClick={() => setViewMode("map")}>
               <Map className="mr-2 h-4 w-4" />
-              Map View
+              Vista de Mapa
             </Button>
             <Button
               variant={viewMode === "table" ? "default" : "outline"}
@@ -108,7 +136,7 @@ export default function DashboardPage() {
               onClick={() => setViewMode("table")}
             >
               <Table className="mr-2 h-4 w-4" />
-              Table View
+              Vista de Tabla
             </Button>
           </div>
         </div>
@@ -136,18 +164,18 @@ export default function DashboardPage() {
             <div className="lg:col-span-1">
               <div className="rounded-lg border bg-card p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Customer Details</h3>
+                  <h3 className="text-lg font-semibold">Detalles del Cliente</h3>
                   <Button variant="ghost" size="sm" onClick={() => setSelectedCustomerId(null)}>
                     ×
                   </Button>
                 </div>
                 <div className="space-y-2">
-                  <p><strong>Name:</strong> {selectedCustomer.name}</p>
-                  <p><strong>Address:</strong> {selectedCustomer.address}</p>
-                  <p><strong>Priority:</strong> {selectedCustomer.priority}</p>
-                  <p><strong>Frequency:</strong> {selectedCustomer.frequency}</p>
-                  <p><strong>Avg Order:</strong> {selectedCustomer.avg_order_hl} HL</p>
-                  <p><strong>Status:</strong> {selectedCustomer.active ? "Active" : "Inactive"}</p>
+                  <p><strong>Nombre:</strong> {selectedCustomer.name}</p>
+                  <p><strong>Dirección:</strong> {selectedCustomer.address}</p>
+                  <p><strong>Prioridad:</strong> {getPriorityLabel(selectedCustomer.priority)}</p>
+                  <p><strong>Frecuencia:</strong> {getFrequencyLabel(selectedCustomer.frequency)}</p>
+                  <p><strong>Pedido Prom.:</strong> {selectedCustomer.avg_order_hl} HL</p>
+                  <p><strong>Estado:</strong> {selectedCustomer.active ? "Activo" : "Inactivo"}</p>
                 </div>
               </div>
             </div>

@@ -29,7 +29,7 @@ export function FilterBar({
       <div className="relative flex-1 min-w-[200px]">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Search routes..."
+          placeholder="Buscar rutas..."
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           className="pl-9"
@@ -38,10 +38,10 @@ export function FilterBar({
 
       <Select value={centerId} onValueChange={onCenterChange}>
         <SelectTrigger className="w-[200px]">
-          <SelectValue placeholder="All Centers" />
+          <SelectValue placeholder="Todos los Centros" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">All Centers</SelectItem>
+          <SelectItem value="all">Todos los Centros</SelectItem>
           {centers.map((center) => (
             <SelectItem key={center.id} value={center.id}>
               {center.name}
@@ -55,7 +55,7 @@ export function FilterBar({
       {onClear && (
         <Button variant="ghost" size="sm" onClick={onClear}>
           <X className="mr-2 h-4 w-4" />
-          Clear
+          Limpiar
         </Button>
       )}
     </div>
