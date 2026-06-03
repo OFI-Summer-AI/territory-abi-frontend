@@ -26,6 +26,18 @@ import {
 import { PredictiveForecast } from "@/modules/customer/predictive-forecast"
 
 export default function CustomerDetailPage() {
+  const GRAPH_PALETTE = [
+    "#022f40",
+    "#38aecc",
+    "#0090c1",
+    "#183446",
+    "#046e8f",
+    "#5cc8ff",
+    "#93867f",
+    "#343633",
+    "#7d70ba",
+    "#dec1ff",
+  ]
   const COSTO_FIJO_ENVIO = 185000
   const COSTO_POR_KG = 900
   const PRECIO_VENTA_POR_KG = 3200
@@ -187,7 +199,7 @@ export default function CustomerDetailPage() {
     { name: "Incidencias", value: Math.round(costoIncidenciasTotal) },
   ].filter((item) => item.value > 0)
 
-  const costBreakdownColors = ["#1d4ed8", "#f97316", "#dc2626"]
+  const costBreakdownColors = [GRAPH_PALETTE[0], GRAPH_PALETTE[2], GRAPH_PALETTE[4]]
 
   return (
       <>
@@ -289,13 +301,13 @@ export default function CustomerDetailPage() {
                         }}
                       />
                       <Legend />
-                      <Bar yAxisId="left" dataKey="ingreso" fill="#16a34a" name="Ingreso" radius={[4, 4, 0, 0]} />
-                      <Bar yAxisId="left" dataKey="costo" fill="#dc2626" name="Costo" radius={[4, 4, 0, 0]} />
+                      <Bar yAxisId="left" dataKey="ingreso" fill={GRAPH_PALETTE[1]} name="Ingreso" radius={[4, 4, 0, 0]} />
+                      <Bar yAxisId="left" dataKey="costo" fill={GRAPH_PALETTE[0]} name="Costo" radius={[4, 4, 0, 0]} />
                       <Line
                         yAxisId="right"
                         type="monotone"
                         dataKey="margen_pct"
-                        stroke="#2563eb"
+                        stroke={GRAPH_PALETTE[2]}
                         strokeWidth={2}
                         name="Margen %"
                         dot={{ r: 3 }}
@@ -374,12 +386,18 @@ export default function CustomerDetailPage() {
                       }}
                     />
                     <Legend />
-                    <Bar yAxisId="left" dataKey="compliance" fill="#2563eb" name="Cumplimiento %" radius={[4, 4, 0, 0]} />
+                    <Bar
+                      yAxisId="left"
+                      dataKey="compliance"
+                      fill={GRAPH_PALETTE[3]}
+                      name="Cumplimiento %"
+                      radius={[4, 4, 0, 0]}
+                    />
                     <Line
                       yAxisId="right"
                       type="monotone"
                       dataKey="delivered_kg"
-                      stroke="#16a34a"
+                      stroke={GRAPH_PALETTE[4]}
                       strokeWidth={2}
                       name="KG entregado"
                     />

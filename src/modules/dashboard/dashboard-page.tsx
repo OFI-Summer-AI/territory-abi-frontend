@@ -26,6 +26,18 @@ import {
 import { MapRoutes } from "@/modules/dashboard/components/map-routes"
 
 export default function DashboardPage() {
+  const GRAPH_PALETTE = [
+    "#022f40",
+    "#38aecc",
+    "#0090c1",
+    "#183446",
+    "#046e8f",
+    "#5cc8ff",
+    "#93867f",
+    "#343633",
+    "#7d70ba",
+    "#dec1ff",
+  ]
   const COSTO_POR_KM = 5200
   const COSTO_POR_HORA = 90000
   const COSTO_FIJO_ENVIO = 185000
@@ -285,7 +297,7 @@ export default function DashboardPage() {
     .sort((a, b) => b.value - a.value)
     .slice(0, 12)
 
-  const ratioCostoEnvioColors = ["#7c3aed", "#2563eb", "#0ea5e9", "#22c55e", "#f59e0b", "#ef4444", "#14b8a6", "#f97316"]
+  const ratioCostoEnvioColors = GRAPH_PALETTE
 
   const getPriorityLabel = (priority: string) => {
     switch (priority) {
@@ -389,8 +401,14 @@ export default function DashboardPage() {
                       }}
                     />
                     <Legend />
-                    <Bar dataKey="costo" name="Costo" fill="#ef4444" stackId="operativo" />
-                    <Bar dataKey="ahorro" name="Ahorro Potencial" fill="#22c55e" stackId="operativo" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="costo" name="Costo" fill={GRAPH_PALETTE[0]} stackId="operativo" />
+                    <Bar
+                      dataKey="ahorro"
+                      name="Ahorro Potencial"
+                      fill={GRAPH_PALETTE[1]}
+                      stackId="operativo"
+                      radius={[4, 4, 0, 0]}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -415,11 +433,17 @@ export default function DashboardPage() {
                       }}
                     />
                     <Legend />
-                    <Bar dataKey="transporte" name="1. Transporte" stackId="tco" fill="#ef4444" />
-                    <Bar dataKey="procesamiento" name="2. Procesamiento y Embalaje" stackId="tco" fill="#f97316" />
-                    <Bar dataKey="administrativos" name="3. Administrativos y Gestión" stackId="tco" fill="#0ea5e9" />
-                    <Bar dataKey="excepciones" name="4. Excepciones y Errores" stackId="tco" fill="#8b5cf6" />
-                    <Bar dataKey="aduanales" name="5. Aduanales e Impuestos" stackId="tco" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="transporte" name="1. Transporte" stackId="tco" fill={GRAPH_PALETTE[0]} />
+                    <Bar dataKey="procesamiento" name="2. Procesamiento y Embalaje" stackId="tco" fill={GRAPH_PALETTE[1]} />
+                    <Bar dataKey="administrativos" name="3. Administrativos y Gestión" stackId="tco" fill={GRAPH_PALETTE[2]} />
+                    <Bar dataKey="excepciones" name="4. Excepciones y Errores" stackId="tco" fill={GRAPH_PALETTE[3]} />
+                    <Bar
+                      dataKey="aduanales"
+                      name="5. Aduanales e Impuestos"
+                      stackId="tco"
+                      fill={GRAPH_PALETTE[4]}
+                      radius={[4, 4, 0, 0]}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>

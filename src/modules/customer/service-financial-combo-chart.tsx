@@ -31,6 +31,19 @@ const MONTHS = [
   { key: "05", label: "Mayo" },
 ]
 
+const GRAPH_PALETTE = [
+  "#022f40",
+  "#38aecc",
+  "#0090c1",
+  "#183446",
+  "#046e8f",
+  "#5cc8ff",
+  "#93867f",
+  "#343633",
+  "#7d70ba",
+  "#dec1ff",
+]
+
 const hashCliente = (id: string) => id.split("").reduce((acc, ch) => (acc * 33 + ch.charCodeAt(0)) % 9973, 19)
 
 export function ServiceFinancialComboChart({
@@ -151,16 +164,16 @@ export function ServiceFinancialComboChart({
             <Bar
               yAxisId="left"
               dataKey="cobertura"
-              name="Barra cobertura"
-              fill="#0ea5e9"
+              name="Total kg entregados"
+              fill={GRAPH_PALETTE[2]}
               radius={[6, 6, 0, 0]}
               barSize={24}
             />
             <Line
               yAxisId="right"
               dataKey="ratio"
-              name="Línea: % costo logístico/revenue"
-              stroke="#f97316"
+              name="% costo logístico/revenue"
+              stroke={GRAPH_PALETTE[0]}
               strokeWidth={3}
               type="monotone"
               dot={{ r: 4, strokeWidth: 2, fill: "#ffffff" }}

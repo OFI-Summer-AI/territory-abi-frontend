@@ -214,8 +214,8 @@ export default function ReportsPage() {
                   }}
                 />
                 <Legend />
-                <Bar dataKey="Pedidos" fill="#FF0000" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Entregados" fill="#F5B027" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Pedidos" fill="#022f40" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Entregados" fill="#5cc8ff" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>

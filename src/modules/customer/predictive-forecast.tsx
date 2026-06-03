@@ -11,6 +11,18 @@ interface PredictiveForecastProps {
 }
 
 export function PredictiveForecast({ customer }: PredictiveForecastProps) {
+  const GRAPH_PALETTE = [
+    "#022f40",
+    "#38aecc",
+    "#0090c1",
+    "#183446",
+    "#046e8f",
+    "#5cc8ff",
+    "#93867f",
+    "#343633",
+    "#7d70ba",
+    "#dec1ff",
+  ]
   const [startMonth, setStartMonth] = useState<string>("")
   const [endMonth, setEndMonth] = useState<string>("")
 
@@ -59,12 +71,12 @@ export function PredictiveForecast({ customer }: PredictiveForecastProps) {
           <AreaChart data={data}>
             <defs>
               <linearGradient id="gradDeliveries" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="oklch(0.6 0.18 250)" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="oklch(0.6 0.18 250)" stopOpacity={0.05} />
+                <stop offset="5%" stopColor={GRAPH_PALETTE[1]} stopOpacity={0.8} />
+                <stop offset="95%" stopColor={GRAPH_PALETTE[1]} stopOpacity={0.05} />
               </linearGradient>
               <linearGradient id="gradHl" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="oklch(0.65 0.18 200)" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="oklch(0.65 0.18 200)" stopOpacity={0.05} />
+                <stop offset="5%" stopColor={GRAPH_PALETTE[2]} stopOpacity={0.8} />
+                <stop offset="95%" stopColor={GRAPH_PALETTE[2]} stopOpacity={0.05} />
               </linearGradient>
               <filter id="dropshadow" height="130%">
                 <feGaussianBlur in="SourceAlpha" stdDeviation="3" />
@@ -95,7 +107,7 @@ export function PredictiveForecast({ customer }: PredictiveForecastProps) {
               dataKey="deliveries"
               name="Entregas Previstas"
               stackId="1"
-              stroke="oklch(0.6 0.18 250)"
+              stroke={GRAPH_PALETTE[1]}
               fill="url(#gradDeliveries)"
               strokeWidth={2}
               filter="url(#dropshadow)"
@@ -105,7 +117,7 @@ export function PredictiveForecast({ customer }: PredictiveForecastProps) {
               dataKey="pred_hl"
               name="HL Previsto"
               stackId="1"
-              stroke="oklch(0.65 0.18 200)"
+              stroke={GRAPH_PALETTE[2]}
               fill="url(#gradHl)"
               strokeWidth={2}
               filter="url(#dropshadow)"
