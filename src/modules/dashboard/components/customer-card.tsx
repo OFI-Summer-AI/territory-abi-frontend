@@ -61,7 +61,7 @@ export function CustomerCard({ customer }: CustomerCardProps) {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <div className="flex items-center gap-2 text-sm">
             <MapPin className="h-4 w-4 text-muted-foreground" />
             <div>
@@ -69,13 +69,6 @@ export function CustomerCard({ customer }: CustomerCardProps) {
               <div className="font-medium">
                 {customer.lat.toFixed(4)}, {customer.lng.toFixed(4)}
               </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <Beer className="h-4 w-4 text-muted-foreground" />
-            <div>
-              <div className="text-muted-foreground">Pedido Prom. Kg</div>
-              <div className="font-medium">{customer.avg_order_kg} Kg</div>
             </div>
           </div>
 

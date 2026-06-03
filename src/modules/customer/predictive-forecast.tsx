@@ -115,7 +115,7 @@ export function PredictiveForecast({ customer }: PredictiveForecastProps) {
             <Area
               type="monotone"
               dataKey="pred_hl"
-              name="HL Previsto"
+              name="Kg Previsto"
               stackId="1"
               stroke={GRAPH_PALETTE[2]}
               fill="url(#gradHl)"

@@ -13,7 +13,6 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
-  ComposedChart,
   Legend,
   Line,
   Pie,
@@ -134,14 +133,6 @@ export default function CustomerDetailPage() {
       maximumFractionDigits: 0,
     }).format(value)
 
-  const formatMoneyCompact = (value: number) =>
-    new Intl.NumberFormat("es-CO", {
-      style: "currency",
-      currency: "COP",
-      notation: "compact",
-      maximumFractionDigits: 1,
-    }).format(value)
-
   const performanceData = last30.map((d) => ({
     date: d.date,
     compliance: d.status === "delivered" && d.delivered_hl > 0 
@@ -150,48 +141,98 @@ export default function CustomerDetailPage() {
     delivered_kg: (d.delivered_hl || 0) * conversionFactor,
   }))
 
-  const financialByMonth = Object.entries(
-    deliveries.reduce<
-      Record<
-        string,
-        {
-          ingreso: number
-          costo: number
-          kg: number
+  const tcoByMonth = Object.entries(
+    {
+      ...(customer.history ?? []).reduce<
+        Record<
+          string,
+          {
+            transporte: number
+            procesamiento: number
+            administrativos: number
+            excepciones: number
+            aduanales: number
+          }
+        >
+      >((acc, item) => {
+        const estimatedKg = Math.max(0, item.deliveries * item.avg_kg)
+        const failedDeliveries = Math.round(item.deliveries * 0.18)
+
+        const transporte = item.deliveries * (COSTO_FIJO_ENVIO * 0.72) + estimatedKg * 170 + item.deliveries * (COSTO_FIJO_ENVIO * 0.16)
+        const procesamiento = estimatedKg * 85 + item.deliveries * (COSTO_FIJO_ENVIO * 0.12) + item.deliveries * 28000
+        const administrativos = item.deliveries * 46000 + item.deliveries * 24000 + estimatedKg * 48
+        const excepciones =
+          failedDeliveries * (COSTO_FIJO_ENVIO * 0.55 + estimatedKg * 120) +
+          failedDeliveries * (COSTO_FIJO_ENVIO * 0.7 + estimatedKg * 180) +
+          failedDeliveries * (COSTO_FIJO_ENVIO * 0.22)
+        const aduanales = estimatedKg * 38 + item.deliveries * 12000 + failedDeliveries * 20000
+
+        acc[item.month] = {
+          transporte,
+          procesamiento,
+          administrativos,
+          excepciones,
+          aduanales,
         }
-      >
-    >((acc, d) => {
-      const month = d.date.slice(0, 7)
-      const orderedKg = (d.ordered_hl || 0) * conversionFactor
-      const deliveredKg = (d.delivered_hl || 0) * conversionFactor
-      const costo = COSTO_FIJO_ENVIO + orderedKg * COSTO_POR_KG + (d.status === "not_delivered" ? COSTO_REINTENTO : 0)
-      const ingresoBase = deliveredKg * PRECIO_VENTA_POR_KG
-      const ingreso = Math.max(ingresoBase, costo * 1.12)
 
-      if (!acc[month]) {
-        acc[month] = { ingreso: 0, costo: 0, kg: 0 }
-      }
+        return acc
+      }, {}),
+      ...deliveries.reduce<
+        Record<
+          string,
+          {
+            transporte: number
+            procesamiento: number
+            administrativos: number
+            excepciones: number
+            aduanales: number
+          }
+        >
+      >((acc, d) => {
+        const month = d.date.slice(0, 7)
+        const orderedKg = (d.ordered_hl || 0) * conversionFactor
+        const deliveredKg = (d.delivered_hl || 0) * conversionFactor
+        const isFailed = d.status === "not_delivered" || d.delivered_hl <= 0
+        const mermaKg = Math.max(0, orderedKg - deliveredKg)
 
-      acc[month].ingreso += ingreso
-      acc[month].costo += costo
-      acc[month].kg += deliveredKg
-      return acc
-    }, {}),
+        const transporte = COSTO_FIJO_ENVIO * 0.72 + orderedKg * 170 + COSTO_FIJO_ENVIO * 0.16
+        const procesamiento = orderedKg * 85 + COSTO_FIJO_ENVIO * 0.12 + 28000
+        const administrativos = 46000 + (isFailed ? 42000 : 24000) + mermaKg * 14 + orderedKg * 48
+        const excepciones =
+          (isFailed ? COSTO_FIJO_ENVIO * 0.55 + orderedKg * 120 : orderedKg * 22) +
+          (isFailed ? COSTO_FIJO_ENVIO * 0.7 + orderedKg * 180 : 0) +
+          (isFailed ? COSTO_FIJO_ENVIO * 0.22 : 0)
+        const aduanales = deliveredKg * 38 + 12000 + (isFailed ? 20000 : 9000)
+
+        if (!acc[month]) {
+          acc[month] = {
+            transporte: 0,
+            procesamiento: 0,
+            administrativos: 0,
+            excepciones: 0,
+            aduanales: 0,
+          }
+        }
+
+        acc[month].transporte += transporte
+        acc[month].procesamiento += procesamiento
+        acc[month].administrativos += administrativos
+        acc[month].excepciones += excepciones
+        acc[month].aduanales += aduanales
+        return acc
+      }, {}),
+    },
   )
     .sort(([a], [b]) => a.localeCompare(b))
-    .slice(-6)
-    .map(([month, values]) => {
-      const utilidad = values.ingreso - values.costo
-      const margenPct = values.ingreso > 0 ? (utilidad / values.ingreso) * 100 : 0
-
-      return {
-        month,
-        ingreso: Math.round(values.ingreso),
-        costo: Math.round(values.costo),
-        utilidad: Math.round(utilidad),
-        margen_pct: Number(margenPct.toFixed(1)),
-      }
-    })
+    .slice(-12)
+    .map(([month, values]) => ({
+      month,
+      transporte: Math.round(values.transporte),
+      procesamiento: Math.round(values.procesamiento),
+      administrativos: Math.round(values.administrativos),
+      excepciones: Math.round(values.excepciones),
+      aduanales: Math.round(values.aduanales),
+    }))
 
   const costBreakdownData = [
     { name: "Costo fijo", value: Math.round(costoFijoTotal) },
@@ -271,87 +312,6 @@ export default function CustomerDetailPage() {
               />
             </div>
 
-            <div className="grid gap-6 xl:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Evolución Financiera Mensual</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <ComposedChart data={financialByMonth}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.25 0.02 240)" />
-                      <XAxis dataKey="month" stroke="oklch(0.65 0.01 240)" />
-                      <YAxis
-                        yAxisId="left"
-                        stroke="oklch(0.65 0.01 240)"
-                        tickFormatter={(value) => formatMoneyCompact(Number(value))}
-                      />
-                      <YAxis yAxisId="right" orientation="right" stroke="oklch(0.65 0.01 240)" domain={[-40, 40]} />
-                      <Tooltip
-                        formatter={(value, name) => {
-                          if (name === "Margen %") {
-                            return `${Number(value).toFixed(1)}%`
-                          }
-                          return formatMoney(Number(value))
-                        }}
-                        contentStyle={{
-                          backgroundColor: "#ffffff",
-                          border: "1px solid oklch(0.25 0.02 240)",
-                          borderRadius: "8px",
-                        }}
-                      />
-                      <Legend />
-                      <Bar yAxisId="left" dataKey="ingreso" fill={GRAPH_PALETTE[1]} name="Ingreso" radius={[4, 4, 0, 0]} />
-                      <Bar yAxisId="left" dataKey="costo" fill={GRAPH_PALETTE[0]} name="Costo" radius={[4, 4, 0, 0]} />
-                      <Line
-                        yAxisId="right"
-                        type="monotone"
-                        dataKey="margen_pct"
-                        stroke={GRAPH_PALETTE[2]}
-                        strokeWidth={2}
-                        name="Margen %"
-                        dot={{ r: 3 }}
-                      />
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Estructura de Costos</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={costBreakdownData}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={95}
-                        label={({ name, percent }) => `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`}
-                      >
-                        {costBreakdownData.map((entry, index) => (
-                          <Cell key={entry.name} fill={costBreakdownColors[index % costBreakdownColors.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        formatter={(value) => formatMoney(Number(value))}
-                        contentStyle={{
-                          backgroundColor: "#ffffff",
-                          border: "1px solid oklch(0.25 0.02 240)",
-                          borderRadius: "8px",
-                        }}
-                      />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div>
-
             <ServiceFinancialComboChart
               customer={customer}
               conversionFactor={conversionFactor}
@@ -370,8 +330,18 @@ export default function CustomerDetailPage() {
                   <BarChart data={performanceData.slice(-20)}>
                     <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.25 0.02 240)" />
                     <XAxis dataKey="date" stroke="oklch(0.65 0.01 240)" />
-                    <YAxis yAxisId="left" stroke="oklch(0.65 0.01 240)" domain={[0, 100]} />
-                    <YAxis yAxisId="right" orientation="right" stroke="oklch(0.65 0.01 240)" />
+                    <YAxis
+                      yAxisId="left"
+                      stroke="oklch(0.65 0.01 240)"
+                      tickFormatter={(value) => `${Math.round(Number(value)).toLocaleString()} kg`}
+                    />
+                    <YAxis
+                      yAxisId="right"
+                      orientation="right"
+                      stroke="oklch(0.65 0.01 240)"
+                      domain={[0, 100]}
+                      tickFormatter={(value) => `${Number(value).toFixed(0)}%`}
+                    />
                     <Tooltip
                       formatter={(value, name) => {
                         if (name === "Cumplimiento %") {
@@ -387,14 +357,14 @@ export default function CustomerDetailPage() {
                     />
                     <Legend />
                     <Bar
-                      yAxisId="left"
+                      yAxisId="right"
                       dataKey="compliance"
                       fill={GRAPH_PALETTE[3]}
                       name="Cumplimiento %"
                       radius={[4, 4, 0, 0]}
                     />
                     <Line
-                      yAxisId="right"
+                      yAxisId="left"
                       type="monotone"
                       dataKey="delivered_kg"
                       stroke={GRAPH_PALETTE[4]}
@@ -412,11 +382,11 @@ export default function CustomerDetailPage() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Quick Stats */}
-            <Card>
+            <Card className="h-[320px]">
               <CardHeader>
                 <CardTitle>Estadísticas Rápidas</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="grid h-[calc(100%-64px)] grid-cols-2 gap-x-4 gap-y-3 content-start">
                 <div>
                   <div className="text-sm text-muted-foreground">Entregas Totales</div>
                   <div className="text-xl font-bold">{totalDeliveries}</div>
@@ -445,7 +415,76 @@ export default function CustomerDetailPage() {
                 </div>
               </CardContent>
             </Card>
-            {/* Prediction */}
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Evolución Financiera Mensual</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={tcoByMonth}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.25 0.02 240)" />
+                    <XAxis dataKey="month" stroke="oklch(0.65 0.01 240)" />
+                    <YAxis stroke="oklch(0.65 0.01 240)" tickFormatter={(value) => formatMoney(Number(value))} />
+                    <Tooltip
+                      formatter={(value) => formatMoney(Number(value))}
+                      contentStyle={{
+                        backgroundColor: "#ffffff",
+                        border: "1px solid oklch(0.25 0.02 240)",
+                        borderRadius: "8px",
+                      }}
+                    />
+                    <Legend />
+                    <Bar dataKey="transporte" name="1. Transporte" stackId="tco" fill={GRAPH_PALETTE[0]} />
+                    <Bar dataKey="procesamiento" name="2. Procesamiento y Embalaje" stackId="tco" fill={GRAPH_PALETTE[1]} />
+                    <Bar dataKey="administrativos" name="3. Administrativos y Gestión" stackId="tco" fill={GRAPH_PALETTE[2]} />
+                    <Bar dataKey="excepciones" name="4. Excepciones y Errores" stackId="tco" fill={GRAPH_PALETTE[3]} />
+                    <Bar
+                      dataKey="aduanales"
+                      name="5. Aduanales e Impuestos"
+                      stackId="tco"
+                      fill={GRAPH_PALETTE[4]}
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Estructura de Costos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={costBreakdownData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={95}
+                      label={({ name, percent }) => `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`}
+                    >
+                      {costBreakdownData.map((entry, index) => (
+                        <Cell key={entry.name} fill={costBreakdownColors[index % costBreakdownColors.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value) => formatMoney(Number(value))}
+                      contentStyle={{
+                        backgroundColor: "#ffffff",
+                        border: "1px solid oklch(0.25 0.02 240)",
+                        borderRadius: "8px",
+                      }}
+                    />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>Predicción de Demanda</CardTitle>
