@@ -22,6 +22,11 @@ function AppLayout() {
               </NavLink>
             </Button>
             <Button asChild variant="ghost">
+              <NavLink to="/customers">
+                Clientes
+              </NavLink>
+            </Button>
+            <Button asChild variant="ghost">
               <NavLink to="/simulator" className={({ isActive }) => (isActive ? "font-semibold" : undefined)}>
                 Simulador
               </NavLink>

@@ -5,6 +5,7 @@ import ReportsPage from '@/modules/report/report-page'
 import RouteDetailPage from '@/modules/routes/route-detail-page'
 import RoutesPage from '@/modules/routes/route-page'
 import CustomerDetailPage from '@/modules/customer/customer-page'
+import CustomersPage from '@/modules/customer/customers-page'
 import SimulatorPage from '@/modules/simulator/simulator-page'
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
         <Route path="reports" element={<ReportsPage />} />
         <Route path="simulator" element={<SimulatorPage />} />
         <Route path="routes" element={<RoutesPage />} />
+        <Route path="customers" element={<CustomersPage />} />
         <Route path="routes/:id" element={<RouteDetailPage />} />
         <Route path="customers/:id" element={<CustomerDetailPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

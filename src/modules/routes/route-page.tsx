@@ -1,17 +1,21 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { FilterBar } from "@/modules/dashboard/components/filter-bar"
+import { MapRoutes } from "@/modules/dashboard/components/map-routes"
 import { RoutesTable } from "@/modules/dashboard/components/routes-table"
 import { Button } from "@/shared/ui/button"
-import { getCenters, getRoutes } from "@/modules/lib/api"
-import type { Center, Route } from "@/modules/lib/types"
-import { Plus } from "lucide-react"
+import { getAllCustomers, getCenters, getRoutes } from "@/modules/lib/api"
+import type { Center, Customer, Route } from "@/modules/lib/types"
+import { Map, Plus, Table } from "lucide-react"
 
 export default function RoutesPage() {
   const navigate = useNavigate()
   const [centers, setCenters] = useState<Center[]>([])
+  const [customers, setCustomers] = useState<Customer[]>([])
   const [routes, setRoutes] = useState<Route[]>([])
   const [loading, setLoading] = useState(true)
+  const [viewMode, setViewMode] = useState<"map" | "table">("table")
+  const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null)
 
   // Filters
   const [searchQuery, setSearchQuery] = useState("")
@@ -21,10 +25,11 @@ export default function RoutesPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const centersData = await getCenters()
+        const [centersData, customersData] = await Promise.all([getCenters(), getAllCustomers()])
         setCenters(centersData)
+        setCustomers(customersData)
       } catch (error) {
-        console.error("Error loading centers:", error)
+        console.error("Error loading centers/customers:", error)
       }
     }
 
@@ -95,10 +100,38 @@ export default function RoutesPage() {
           </div>
         ) : (
           <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Button variant={viewMode === "map" ? "default" : "outline"} size="sm" onClick={() => setViewMode("map")}>
+                <Map className="mr-2 h-4 w-4" />
+                Vista de Mapa
+              </Button>
+              <Button
+                variant={viewMode === "table" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setViewMode("table")}
+              >
+                <Table className="mr-2 h-4 w-4" />
+                Vista de Tabla
+              </Button>
+            </div>
+
             <div className="text-sm text-muted-foreground">
               Mostrando {filteredRoutes.length} de {routes.length} rutas
             </div>
-            <RoutesTable routes={filteredRoutes} onView={(id) => navigate(`/routes/${id}`)} />
+
+            {viewMode === "map" ? (
+              <div className="h-[600px] overflow-hidden rounded-lg border bg-card">
+                <MapRoutes
+                  centers={centers}
+                  customers={customers}
+                  routes={filteredRoutes}
+                  selectedRouteId={selectedRouteId}
+                  onRouteClick={(id) => setSelectedRouteId(id)}
+                />
+              </div>
+            ) : (
+              <RoutesTable routes={filteredRoutes} onView={(id) => navigate(`/routes/${id}`)} />
+            )}
           </div>
         )}
       </>
