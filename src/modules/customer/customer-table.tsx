@@ -11,6 +11,9 @@ interface CustomerTableProps {
 }
 
 export function CustomerTable({ customers, onView }: CustomerTableProps) {
+  const COSTO_FIJO_ENVIO = 38000
+  const COSTO_VARIABLE_POR_KG = 14
+
   
 
   const getEffectiveDeliveries = (customer: Customer) => {
@@ -34,6 +37,18 @@ export function CustomerTable({ customers, onView }: CustomerTableProps) {
     return customer.delivery_history?.reduce((total, delivery) => {
       return total + delivery.delivered_hl * conversionFactor
     }, 0) ?? 0
+  }
+
+  const getRatioLogistico = (customer: Customer) => {
+    const factorKgPorHl = customer.avg_order_hl > 0 ? customer.avg_order_kg / customer.avg_order_hl : 0
+    const totalEntregas = customer.delivery_history?.length ?? 0
+    const totalKgPedido =
+      customer.delivery_history?.reduce((sum, delivery) => sum + delivery.ordered_hl * factorKgPorHl, 0) ?? 0
+
+    const costoLogistico = totalEntregas * (COSTO_FIJO_ENVIO * 0.4) + totalKgPedido * COSTO_VARIABLE_POR_KG
+    const costoTotal = costoLogistico + totalEntregas * 28000 + totalKgPedido * 8
+    const ratio = costoTotal > 0 ? (costoLogistico / costoTotal) * 100 : 0
+    return Number(ratio.toFixed(1))
   }
 
   const getPriorityColor = (priority: Customer["priority"]) => {
@@ -74,6 +89,7 @@ export function CustomerTable({ customers, onView }: CustomerTableProps) {
             <TableHead>Entregas Efectivas</TableHead>
             <TableHead>Entregas Cubiertas</TableHead>
             <TableHead>KG Entregado</TableHead>
+            <TableHead>Ratio Logistico/Total</TableHead>
             <TableHead>Prioridad</TableHead>
             <TableHead>Frecuencia</TableHead>
             <TableHead className="text-right">Acciones</TableHead>
@@ -84,6 +100,7 @@ export function CustomerTable({ customers, onView }: CustomerTableProps) {
             const deliveryStats = getEffectiveDeliveries(customer)
             const completionRate = getDeliveryCompletionRate(customer)
             const totalKg = getTotalKilogramsDelivered(customer)
+            const ratioLogistico = getRatioLogistico(customer)
             
             return (
               <TableRow key={customer.id}>
@@ -117,6 +134,11 @@ export function CustomerTable({ customers, onView }: CustomerTableProps) {
                 <TableCell>
                   <div className="text-sm font-medium">{Math.round(totalKg).toLocaleString()} KG</div>
                   <div className="text-xs text-muted-foreground">Promedio: {customer.avg_order_kg} KG</div>
+                </TableCell>
+                <TableCell>
+                  <span className={ratioLogistico <= 45 ? "text-chart-2 font-medium" : "text-destructive font-medium"}>
+                    {ratioLogistico}%
+                  </span>
                 </TableCell>
                 <TableCell>
                   <Badge className={getPriorityColor(customer.priority)}>

@@ -2,16 +2,33 @@ import { useEffect, useState } from "react"
 import { KpiCard } from "@/modules/dashboard/components/kpi-card"
 import { CustomerTable } from "@/modules/customer/customer-table"
 import { Button } from "@/shared/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import { getCenters, getAllCustomers, getRoutes, getKpis } from "@/modules/lib/api"
 import { useAppStore } from "@/modules/lib/store"
 import type { Center, Customer, Route, KpiSummary } from "@/modules/lib/types"
 import { Map, Table, Truck, Users, Gauge, Clock, Package, DollarSign, PiggyBank } from "lucide-react"
+import {
+  Bar,
+  BarChart,
+  Cell,
+  CartesianGrid,
+  Legend,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts"
 
 import { MapRoutes } from "@/modules/dashboard/components/map-routes"
 
 export default function DashboardPage() {
   const COSTO_POR_KM = 3200
   const COSTO_POR_HORA = 50000
+  const COSTO_FIJO_ENVIO = 38000
+  const COSTO_VARIABLE_POR_KG = 14
+  const PRECIO_VENTA_POR_KG = 28
   const OBJETIVO_AHORRO = 0.08
 
   const { viewMode, setViewMode, selectedRouteId, setSelectedRouteId } = useAppStore()
@@ -74,16 +91,13 @@ export default function DashboardPage() {
     ? routes.filter((route) => route.stops.some((stop) => stop.customer_id === selectedCustomer.id))
     : []
   const totalOrdenesCliente = selectedCustomer?.delivery_history?.length ?? 0
-  const totalClientesMismoCentro = selectedCustomer
-    ? customers.filter((customer) => customer.center_id === selectedCustomer.center_id).length
-    : 0
   const capacidadPromedioKgCliente = selectedCustomer
-    ? routesDelCliente.reduce((sum, route) => {
+    ? rutasDelCliente.reduce((sum, route) => {
         const totalClienteRuta = route.stops
           .filter((stop) => stop.customer_id === selectedCustomer.id)
           .reduce((acc, stop) => acc + stop.order_kg, 0)
         return sum + totalClienteRuta
-      }, 0) / Math.max(1, routesDelCliente.length)
+      }, 0) / Math.max(1, rutasDelCliente.length)
     : 0
   const entregasCompletadasCliente =
     selectedCustomer?.delivery_history?.filter((d) => d.status === "delivered" && d.delivered_hl > 0).length ?? 0
@@ -108,6 +122,86 @@ export default function DashboardPage() {
       currency: "COP",
       maximumFractionDigits: 0,
     }).format(value)
+
+  const costoPorRutaData = routes.slice(0, 8).map((route) => {
+    const costoRuta = route.estimated_km * COSTO_POR_KM + (route.estimated_time_min / 60) * COSTO_POR_HORA
+    return {
+      ruta: route.id,
+      costo: Math.round(costoRuta),
+      ahorro: Math.round(costoRuta * OBJETIVO_AHORRO),
+    }
+  })
+
+  const metricasMensuales = customers.reduce<Record<string, { costo: number; ingreso: number; ahorro: number }>>(
+    (acc, customer) => {
+      const factorKgPorHl = customer.avg_order_hl > 0 ? customer.avg_order_kg / customer.avg_order_hl : 0
+      for (const delivery of customer.delivery_history ?? []) {
+        const mes = delivery.date.slice(0, 7)
+        const orderedKg = delivery.ordered_hl * factorKgPorHl
+        const deliveredKg = delivery.delivered_hl * factorKgPorHl
+        const costo = COSTO_FIJO_ENVIO + orderedKg * COSTO_VARIABLE_POR_KG
+        const ingresoBase = deliveredKg * PRECIO_VENTA_POR_KG
+        const ingreso = Math.max(ingresoBase, costo * 1.12)
+        const ahorro = costo * OBJETIVO_AHORRO
+
+        if (!acc[mes]) {
+          acc[mes] = { costo: 0, ingreso: 0, ahorro: 0 }
+        }
+
+        acc[mes].costo += costo
+        acc[mes].ingreso += ingreso
+        acc[mes].ahorro += ahorro
+      }
+      return acc
+    },
+    {},
+  )
+
+  const evolucionFinancieraData = Object.entries(metricasMensuales)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .slice(-6)
+    .map(([mes, valores]) => ({
+      mes,
+      costo: Math.round(valores.costo),
+      ingreso: Math.round(valores.ingreso),
+      utilidad: Math.round(valores.ingreso - valores.costo),
+      ahorro: Math.round(valores.ahorro),
+    }))
+
+  const hashCliente = (id: string) =>
+    id.split("").reduce((acc, ch) => (acc * 33 + ch.charCodeAt(0)) % 9973, 17)
+
+  const costoRevenueRatioClienteData = customers
+    .map((customer) => {
+      const factorKgPorHl = customer.avg_order_hl > 0 ? customer.avg_order_kg / customer.avg_order_hl : 0
+      const totalEntregas = customer.delivery_history?.length ?? 0
+      const entregasCompletadas = customer.delivery_history?.filter((d) => d.status === "delivered" && d.delivered_hl > 0).length ?? 0
+      const tasaCumplimiento = totalEntregas > 0 ? entregasCompletadas / totalEntregas : 0
+      const variabilidadCliente = (hashCliente(customer.id) % 100) / 100 // 0.00 .. 0.99
+      const totalKgPedido =
+        customer.delivery_history?.reduce((sum, delivery) => sum + delivery.ordered_hl * factorKgPorHl, 0) ?? 0
+      const totalKgEntregado =
+        customer.delivery_history?.reduce((sum, delivery) => sum + delivery.delivered_hl * factorKgPorHl, 0) ?? 0
+
+      const costoTotal =
+        totalEntregas * COSTO_FIJO_ENVIO + totalKgPedido * COSTO_VARIABLE_POR_KG + totalEntregas * 28000 + totalKgPedido * 8
+      const ingresoBase = totalKgEntregado * PRECIO_VENTA_POR_KG
+      const ajustePrioridad = customer.priority === "high" ? 0.08 : customer.priority === "medium" ? 0.04 : 0.015
+      const ajusteCumplimiento = (1 - tasaCumplimiento) * 0.18
+      const ajusteVariabilidad = variabilidadCliente * 0.45
+      const margenMinimo = Math.min(0.65, 0.05 + ajustePrioridad + ajusteCumplimiento + ajusteVariabilidad)
+      const revenue = Math.max(ingresoBase, costoTotal * (1 + margenMinimo))
+      const ratio = revenue > 0 ? (costoTotal / revenue) * 100 : 0
+
+      return {
+        name: customer.name,
+        value: Number(ratio.toFixed(1)),
+      }
+    })
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 8)
+
+  const costoRevenueColors = ["#7c3aed", "#2563eb", "#0ea5e9", "#22c55e", "#f59e0b", "#ef4444", "#14b8a6", "#f97316"]
 
   const getPriorityLabel = (priority: string) => {
     switch (priority) {
@@ -192,6 +286,95 @@ export default function DashboardPage() {
               />
             </div>
           )}
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Costo Operativo y Ahorro Potencial por Ruta</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={280}>
+                  <BarChart data={costoPorRutaData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.25 0.02 240)" />
+                    <XAxis dataKey="ruta" stroke="oklch(0.65 0.01 240)" tick={{ fontSize: 11 }} />
+                    <YAxis stroke="oklch(0.65 0.01 240)" tickFormatter={(value) => `${Math.round(value / 1000)}k`} />
+                    <Tooltip
+                      formatter={(value: number) => formatMoney(value)}
+                      contentStyle={{
+                        backgroundColor: "#ffffff",
+                        border: "1px solid oklch(0.25 0.02 240)",
+                        borderRadius: "8px",
+                      }}
+                    />
+                    <Legend />
+                    <Bar dataKey="costo" name="Costo" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="ahorro" name="Ahorro Potencial" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Comparativo Financiero Mensual</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={280}>
+                  <BarChart data={evolucionFinancieraData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.25 0.02 240)" />
+                    <XAxis dataKey="mes" stroke="oklch(0.65 0.01 240)" />
+                    <YAxis stroke="oklch(0.65 0.01 240)" tickFormatter={(value) => `${Math.round(value / 1000)}k`} />
+                    <Tooltip
+                      formatter={(value: number) => formatMoney(value)}
+                      contentStyle={{
+                        backgroundColor: "#ffffff",
+                        border: "1px solid oklch(0.25 0.02 240)",
+                        borderRadius: "8px",
+                      }}
+                    />
+                    <Legend />
+                    <Bar dataKey="costo" name="Costo" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="ingreso" name="Ingreso" fill="#2563eb" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="utilidad" name="Utilidad" fill="#16a34a" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle>Ratio Costo Total / Revenue por Cliente</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Tooltip
+                      formatter={(value: number) => `${value}%`}
+                      contentStyle={{
+                        backgroundColor: "#ffffff",
+                        border: "1px solid oklch(0.25 0.02 240)",
+                        borderRadius: "8px",
+                      }}
+                    />
+                    <Legend />
+                    <Pie
+                      data={costoRevenueRatioClienteData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={110}
+                      label={({ name, percent }) => `${name}: ${(Number(percent ?? 0) * 100).toFixed(1)}%`}
+                    >
+                      {costoRevenueRatioClienteData.map((entry, index) => (
+                        <Cell key={`${entry.name}-${index}`} fill={costoRevenueColors[index % costoRevenueColors.length]} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
 
           {/* View Toggle */}
           <div className="flex items-center gap-2">
