@@ -11,8 +11,8 @@ export default function ReportsPage() {
   const [customers, setCustomers] = useState<Customer[]>([])
   const [loading, setLoading] = useState(true)
   const [dateRange, setDateRange] = useState({
-    start: "2025-01-10",
-    end: "2025-01-10",
+    start: "",
+    end: "",
   })
 
   useEffect(() => {
@@ -21,6 +21,18 @@ export default function ReportsPage() {
       try {
         const customersData = await getAllCustomers()
         setCustomers(customersData)
+
+        const allDeliveryDates = customersData
+          .flatMap((customer) => customer.delivery_history ?? [])
+          .map((delivery) => delivery.date)
+          .sort((a, b) => a.localeCompare(b))
+
+        if (allDeliveryDates.length > 0) {
+          setDateRange({
+            start: allDeliveryDates[0],
+            end: allDeliveryDates[allDeliveryDates.length - 1],
+          })
+        }
       } catch (error) {
         console.error("Error loading reports data:", error)
       } finally {
@@ -29,11 +41,16 @@ export default function ReportsPage() {
     }
 
     loadData()
-  }, [dateRange])
+  }, [])
+
+  const isWithinDateRange = (value: string) => {
+    if (!dateRange.start || !dateRange.end) return true
+    return value >= dateRange.start && value <= dateRange.end
+  }
 
   // Calculate comparison data (ordered vs delivered in KG)
   const comparisonData = customers.map((customer) => {
-    const deliveries = customer.delivery_history || []
+    const deliveries = (customer.delivery_history || []).filter((delivery) => isWithinDateRange(delivery.date))
     const conversionFactor = customer.avg_order_hl > 0 ? customer.avg_order_kg / customer.avg_order_hl : 0
     const totalOrderedKG = deliveries.reduce((sum, delivery) => sum + delivery.ordered_hl * conversionFactor, 0)
     const totalDeliveredKG = deliveries.reduce((sum, delivery) => sum + delivery.delivered_hl * conversionFactor, 0)
@@ -44,10 +61,9 @@ export default function ReportsPage() {
     const rawFullDeliveries = deliveries.filter(
       (d) => d.status === "delivered" && d.delivered_hl >= d.ordered_hl && d.ordered_hl > 0,
     ).length
-    const totalDeliveries = Math.max(1, deliveries.length)
-    const minimumHighPerformanceDeliveries = Math.min(totalDeliveries, Math.floor(totalDeliveries * 0.8) + 1)
-    const onTimeDeliveries = Math.max(rawOnTimeDeliveries, minimumHighPerformanceDeliveries)
-    const fullDeliveries = Math.max(rawFullDeliveries, minimumHighPerformanceDeliveries)
+    const totalDeliveries = deliveries.length
+    const onTimeDeliveries = rawOnTimeDeliveries
+    const fullDeliveries = rawFullDeliveries
     const completionRate = totalDeliveries > 0 ? (completedDeliveries / totalDeliveries) * 100 : 0
     
     return {
@@ -79,6 +95,12 @@ export default function ReportsPage() {
   const variancePercent = totalOrderedKG > 0 ? ((variance / totalOrderedKG) * 100).toFixed(1) : "0"
 
   const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
+
+  const formatNumber = (value: number) =>
+    new Intl.NumberFormat("es-CO", { maximumFractionDigits: 0 }).format(value)
+
+  const formatNumber1 = (value: number) =>
+    new Intl.NumberFormat("es-CO", { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(value)
 
   const hashString = (value: string) =>
     value.split("").reduce((acc, ch) => (acc * 31 + ch.charCodeAt(0)) % 100000, 7)
@@ -164,7 +186,7 @@ export default function ReportsPage() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Total de Clientes</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{customers.length}</div>
+              <div className="text-2xl font-bold">{formatNumber(customers.length)}</div>
             </CardContent>
           </Card>
 
@@ -173,7 +195,7 @@ export default function ReportsPage() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Pedido (KG)</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalOrderedKG.toFixed(1)} KG</div>
+              <div className="text-2xl font-bold">{formatNumber1(totalOrderedKG)} KG</div>
             </CardContent>
           </Card>
 
@@ -182,7 +204,7 @@ export default function ReportsPage() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Entregado (KG)</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalDeliveredKG.toFixed(1)} KG</div>
+              <div className="text-2xl font-bold">{formatNumber1(totalDeliveredKG)} KG</div>
             </CardContent>
           </Card>
 
@@ -193,7 +215,7 @@ export default function ReportsPage() {
             <CardContent>
               <div className="text-2xl font-bold">
                 {variance > 0 ? "+" : ""}
-                {variance.toFixed(1)} KG
+                {formatNumber1(variance)} KG
               </div>
               <div className="text-sm text-muted-foreground">
                 {variance > 0 ? "+" : ""}
@@ -273,8 +295,8 @@ export default function ReportsPage() {
                             {item.priority === "high" ? "alta" : item.priority === "medium" ? "media" : "baja"}
                           </span>
                         </td>
-                        <td className="p-3 text-right">{item.proposed_kg.toFixed(1)}</td>
-                        <td className="p-3 text-right">{item.delivered_kg.toFixed(1)}</td>
+                        <td className="p-3 text-right">{formatNumber1(item.proposed_kg)}</td>
+                        <td className="p-3 text-right">{formatNumber1(item.delivered_kg)}</td>
                         <td className="p-3 text-right">
                           <span className={costoServirPct > 0 ? "text-chart-2" : costoServirPct < 0 ? "text-destructive" : "text-foreground"}>
                             {costoServirPct > 0 ? "+" : ""}
@@ -283,12 +305,12 @@ export default function ReportsPage() {
                         </td>
                         <td className="p-3 text-right">{item.completion_rate.toFixed(1)}%</td>
                         <td className="p-3 text-right">
-                          {item.on_time_deliveries}/{item.total_deliveries}
+                          {formatNumber(item.on_time_deliveries)}/{formatNumber(item.total_deliveries)}
                         </td>
                         <td className="p-3 text-right">
-                          {item.full_deliveries}/{item.total_deliveries}
+                          {formatNumber(item.full_deliveries)}/{formatNumber(item.total_deliveries)}
                         </td>
-                        <td className="p-3 text-right">{item.total_deliveries}</td>
+                        <td className="p-3 text-right">{formatNumber(item.total_deliveries)}</td>
                       </tr>
                     )
                   })}
@@ -308,8 +330,8 @@ export default function ReportsPage() {
               <h4 className="font-medium">Rendimiento de Entrega</h4>
               <p className="mt-1 text-sm text-muted-foreground">
                 {variance > 0
-                  ? `Los kilogramos entregados superaron lo pedido en ${variance.toFixed(1)} KG (${variancePercent}%). Esto puede indicar sobreentrega o discrepancias de datos.`
-                  : `Los kilogramos entregados fueron ${Math.abs(variance).toFixed(1)} KG menos que lo pedido (${Math.abs(Number.parseFloat(variancePercent))}%). Considera revisar los procesos de entrega.`}
+                  ? `Los kilogramos entregados superaron lo pedido en ${formatNumber1(variance)} KG (${variancePercent}%). Esto puede indicar sobreentrega o discrepancias de datos.`
+                  : `Los kilogramos entregados fueron ${formatNumber1(Math.abs(variance))} KG menos que lo pedido (${Math.abs(Number.parseFloat(variancePercent))}%). Considera revisar los procesos de entrega.`}
               </p>
             </div>
 
@@ -325,7 +347,7 @@ export default function ReportsPage() {
             <div className="rounded-lg border bg-muted/50 p-4">
               <h4 className="font-medium">Clientes de Alta Prioridad</h4>
               <p className="mt-1 text-sm text-muted-foreground">
-                {comparisonData.filter((item) => item.priority === "high").length} clientes de alta prioridad de un total de {comparisonData.length} clientes.
+                {formatNumber(comparisonData.filter((item) => item.priority === "high").length)} clientes de alta prioridad de un total de {formatNumber(comparisonData.length)} clientes.
                 Enfócate en mantener altas tasas de entrega para estos clientes.
               </p>
             </div>

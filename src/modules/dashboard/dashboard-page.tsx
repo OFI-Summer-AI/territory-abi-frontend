@@ -101,6 +101,15 @@ export default function DashboardPage() {
     (acc, route) => acc + route.stops.reduce((sum, stop) => sum + stop.order_kg, 0),
     0,
   )
+  const totalOrdenes = routes.reduce((acc, route) => acc + route.stops.length, 0)
+  const totalEntregasHistoricas = customers.reduce((acc, customer) => acc + (customer.delivery_history?.length ?? 0), 0)
+  const entregasCompletadasHistoricas = customers.reduce(
+    (acc, customer) =>
+      acc + (customer.delivery_history?.filter((delivery) => delivery.status === "delivered" && delivery.delivered_hl > 0).length ?? 0),
+    0,
+  )
+  const porcentajeCobertura =
+    totalEntregasHistoricas > 0 ? (entregasCompletadasHistoricas / totalEntregasHistoricas) * 100 : 0
   const capacidadPromedioKg = routes.length > 0 ? totalKgProgramados / routes.length : 0
 
   const costoTotalEnvio = (kpis?.total_km ?? 0) * COSTO_POR_KM + (kpis?.total_time_hours ?? 0) * COSTO_POR_HORA
@@ -352,15 +361,15 @@ export default function DashboardPage() {
       <>
         <div className="mb-6 space-y-4">
           <div>
-            <h2 className="text-3xl font-bold">Panel</h2>
-            <p className="text-muted-foreground">Resumen de operaciones de entrega del 10 de enero de 2025</p>
+            <h2 className="text-3xl font-bold">Panel Principal</h2>
+           
           </div>
 
           {/* KPIs */}
           {kpis && (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <KpiCard label="Total Rutas" value={110} icon={<Truck className="h-4 w-4" />} />
-              <KpiCard label="Total Ordenes" value={356} icon={<Package className="h-4 w-4" />} />
+              <KpiCard label="Total Rutas" value={kpis.total_routes} icon={<Truck className="h-4 w-4" />} />
+              <KpiCard label="Total Ordenes" value={totalOrdenes} icon={<Package className="h-4 w-4" />} />
               <KpiCard label="Total Clientes" value={kpis.total_customers} icon={<Users className="h-4 w-4" />} />
               <KpiCard
                 label="Capacidad Prom. KG"
@@ -369,7 +378,7 @@ export default function DashboardPage() {
               />
               <KpiCard
                 label="Porcentaje de Cobertura"
-                value="89%"
+                value={`${porcentajeCobertura.toFixed(1)}%`}
                 icon={<Map className="h-4 w-4" />}
               />
               <KpiCard
