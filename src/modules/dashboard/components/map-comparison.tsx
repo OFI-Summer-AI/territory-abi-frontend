@@ -42,7 +42,7 @@ function MapView({ title, routes, customers, type, complianceResult }: MapViewPr
   // Mock map data - in real implementation, this would use actual map library
   const mapStats = {
     totalDistance: type === "current" ? "847 km" : "623 km",
-    totalTime: type === "current" ? "12.4 hrs" : "9.2 hrs",
+    totalTime: type === "current" ? "12.4 h" : "9.2 h",
     deliverySuccess: type === "current" ? "78%" : "94%",
     efficiencyHlKm: type === "current" ? "2.1" : "3.2",
     routeCount: routes.length
@@ -67,7 +67,7 @@ function MapView({ title, routes, customers, type, complianceResult }: MapViewPr
             <div className="flex gap-2">
               <Badge variant="secondary" className="text-green-600">
                 <TrendingDown className="h-3 w-3 mr-1" />
-                {improvement.distance}% distance
+                {improvement.distance}% distancia
               </Badge>
               <Badge variant="secondary" className="text-green-600">
                 <TrendingUp className="h-3 w-3 mr-1" />
@@ -82,15 +82,15 @@ function MapView({ title, routes, customers, type, complianceResult }: MapViewPr
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
           <div className="text-center p-2 bg-muted/50 rounded">
             <div className="font-medium">{mapStats.routeCount}</div>
-            <div className="text-muted-foreground">Routes</div>
+              <div className="text-muted-foreground">Rutas</div>
           </div>
           <div className="text-center p-2 bg-muted/50 rounded">
             <div className="font-medium">{mapStats.totalDistance}</div>
-            <div className="text-muted-foreground">Distance</div>
+              <div className="text-muted-foreground">Distancia</div>
           </div>
           <div className="text-center p-2 bg-muted/50 rounded">
             <div className="font-medium">{mapStats.deliverySuccess}</div>
-            <div className="text-muted-foreground">Success</div>
+              <div className="text-muted-foreground">Éxito</div>
           </div>
           <div className="text-center p-2 bg-muted/50 rounded">
             <div className="font-medium">{mapStats.efficiencyHlKm}</div>
@@ -103,9 +103,9 @@ function MapView({ title, routes, customers, type, complianceResult }: MapViewPr
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
               <MapPin className="h-12 w-12 mx-auto text-slate-400 mb-2" />
-              <p className="text-slate-500 font-medium">Interactive Map View</p>
+              <p className="text-slate-500 font-medium">Vista de Mapa Interactiva</p>
               <p className="text-slate-400 text-sm">
-                {type === "current" ? "Current Route Distribution" : "Optimized Route Layout"}
+                {type === "current" ? "Distribución de Rutas Actual" : "Diseño de Rutas Optimizado"}
               </p>
             </div>
           </div>
@@ -168,7 +168,7 @@ function MapView({ title, routes, customers, type, complianceResult }: MapViewPr
 
         {/* Route List */}
         <div className="space-y-2">
-          <h4 className="font-medium text-sm">Routes ({routes.length})</h4>
+          <h4 className="font-medium text-sm">Rutas ({routes.length})</h4>
           <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
             {routes.map((route, index) => (
               <div
@@ -195,15 +195,15 @@ function MapView({ title, routes, customers, type, complianceResult }: MapViewPr
         <div className="flex items-center gap-4 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 bg-blue-500 rounded-full" />
-            <span>Compliant Customers</span>
+            <span>Clientes Conformes</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 bg-red-500 rounded-full" />
-            <span>Non-Covered Customers</span>
+            <span>Clientes No Cubiertos</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 bg-slate-400 rounded-full" />
-            <span>Route Centers</span>
+            <span>Centros de Ruta</span>
           </div>
         </div>
       </CardContent>
@@ -372,8 +372,8 @@ export function MapComparison({ complianceResult, onClose }: MapComparisonProps)
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <div>
-            <h2 className="text-2xl font-bold">Route Comparison Map</h2>
-            <p className="text-muted-foreground">Current routes vs. optimized coverage routes</p>
+            <h2 className="text-2xl font-bold">Mapa de Comparación de Rutas</h2>
+            <p className="text-muted-foreground">Rutas actuales vs. rutas de cobertura optimizadas</p>
           </div>
           <Button variant="ghost" onClick={onClose}>
             <X className="h-5 w-5" />
@@ -383,14 +383,14 @@ export function MapComparison({ complianceResult, onClose }: MapComparisonProps)
         {/* Maps Side by Side */}
         <div className="flex-1 p-6 grid grid-cols-1 lg:grid-cols-2 gap-6 overflow-hidden">
           <MapView
-            title="Current Routes"
+            title="Rutas Actuales"
             routes={currentRoutes}
             customers={allCustomers}
             type="current"
             complianceResult={complianceResult}
           />
           <MapView
-            title="Optimized Routes"
+            title="Rutas Optimizadas"
             routes={optimizedRoutes}
             customers={allCustomers}
             type="optimized"
@@ -404,26 +404,26 @@ export function MapComparison({ complianceResult, onClose }: MapComparisonProps)
             <div className="flex items-center gap-6 text-sm">
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-muted-foreground" />
-                <span>{complianceResult.non_compliant_clients.length} non-covered clients</span>
+                <span>{complianceResult.non_compliant_clients.length} clientes no cubiertos</span>
               </div>
               <div className="flex items-center gap-2">
                 <Route className="h-4 w-4 text-muted-foreground" />
-                <span>{complianceResult.optimization_suggestions.length} optimization suggestions</span>
+                <span>{complianceResult.optimization_suggestions.length} sugerencias de optimización</span>
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-muted-foreground" />
                 <span>
                   {complianceResult.impact_analysis.improvements.delivery_success_rate_change.toFixed(1)}% 
-                  improvement expected
+                  de mejora esperada
                 </span>
               </div>
             </div>
             <div className="flex gap-2">
               <Button variant="outline" onClick={onClose}>
-                Close Map
+                Cerrar Mapa
               </Button>
               <Button>
-                Apply Optimizations
+                Aplicar Optimizaciones
               </Button>
             </div>
           </div>

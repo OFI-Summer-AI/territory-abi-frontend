@@ -5,7 +5,7 @@ import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 import { getRoute } from "@/modules/lib/api"
 import type { Route, Center, Customer } from "@/modules/lib/types"
-import { ArrowLeft, CheckCircle, Clock, Package, MapPin, Beer } from "lucide-react"
+import { ArrowLeft, CheckCircle, Clock, Package, MapPin, Beer, Truck } from "lucide-react"
 
 import { MapRoutes } from "@/modules/dashboard/components/map-routes"
 
@@ -25,8 +25,8 @@ export default function RouteDetailPage() {
         setRoute(routeData)
         // Use enriched customers from route stops for accuracy in detail view
         const enriched = routeData.stops
-          .map((s: any) => s.customer)
-          .filter((c: any): c is Customer => Boolean(c))
+          .map((s) => (s as typeof s & { customer?: Customer }).customer)
+          .filter((c): c is Customer => Boolean(c))
         setCustomers(enriched)
       } catch (error) {
         console.error("[Error loading route details:", error)
@@ -40,13 +40,13 @@ export default function RouteDetailPage() {
 
   const handleMarkExecuted = () => {
     // Mock action
-    alert("Route marked as executed (mock action)")
+    alert("Ruta marcada como ejecutada (acción simulada)")
   }
 
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="text-muted-foreground">Loading route details...</div>
+        <div className="text-muted-foreground">Cargando detalles de la ruta...</div>
       </div>
     )
   }
@@ -55,9 +55,9 @@ export default function RouteDetailPage() {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <p className="text-muted-foreground">Route not found</p>
+          <p className="text-muted-foreground">Ruta no encontrada</p>
           <Button className="mt-4" onClick={() => navigate('/')}>
-            Back to Routes
+            Volver a Rutas
           </Button>
         </div>
       </div>
@@ -81,19 +81,121 @@ export default function RouteDetailPage() {
     .map((stop) => customers.find((c) => c.id === stop.customer_id))
     .filter((c): c is Customer => c !== undefined)
 
+  const stopsWithMeta = [...route.stops].sort((a, b) => a.sequence - b.sequence)
+  const explicitlyCompletedStopIds = new Set(
+    stopsWithMeta
+      .filter((stop) => {
+        const stopStatus = (stop as typeof stop & { status?: { executed?: boolean } }).status
+        return stopStatus?.executed === true
+      })
+      .map((stop) => stop.customer_id),
+  )
+
+  const inferredCompletedCount =
+    route.status === "completed"
+      ? stopsWithMeta.length
+      : route.status === "in_progress"
+        ? Math.max(1, Math.floor(stopsWithMeta.length * 0.4))
+        : 0
+
+  const completedStopIds = new Set(
+    stopsWithMeta
+      .filter((stop, index) => {
+        if (route.status === "completed") return true
+        if (route.status !== "in_progress") return false
+        if (explicitlyCompletedStopIds.size > 0) return explicitlyCompletedStopIds.has(stop.customer_id)
+        return index < inferredCompletedCount
+      })
+      .map((stop) => stop.customer_id),
+  )
+
+  const nextPendingStop =
+    route.status === "in_progress" ? stopsWithMeta.find((stop) => !completedStopIds.has(stop.customer_id)) : undefined
+
+  const lastCompletedStop =
+    route.status === "in_progress"
+      ? [...stopsWithMeta].reverse().find((stop) => completedStopIds.has(stop.customer_id))
+      : undefined
+
+  const lastCompletedCustomer = lastCompletedStop
+    ? customers.find((c) => c.id === lastCompletedStop.customer_id)
+    : undefined
+  const nextPendingCustomer = nextPendingStop
+    ? customers.find((c) => c.id === nextPendingStop.customer_id)
+    : undefined
+
+  const vehiclePosition =
+    route.status === "in_progress"
+      ? {
+          lat:
+            lastCompletedCustomer && nextPendingCustomer
+              ? (lastCompletedCustomer.lat + nextPendingCustomer.lat) / 2
+              : lastCompletedCustomer?.lat ?? nextPendingCustomer?.lat ?? route.center.lat,
+          lng:
+            lastCompletedCustomer && nextPendingCustomer
+              ? (lastCompletedCustomer.lng + nextPendingCustomer.lng) / 2
+              : lastCompletedCustomer?.lng ?? nextPendingCustomer?.lng ?? route.center.lng,
+          label: nextPendingCustomer
+            ? `En camino a ${nextPendingCustomer.name}`
+            : "Vehículo en ruta",
+        }
+      : null
+
+  const assignedVehicle = route.center.vehicles?.find((vehicle) => vehicle.id === route.vehicle_id)
+  const totalRouteKg = route.stops.reduce((sum, stop) => sum + stop.order_kg, 0)
+  const inferredCapacityKg =
+    route.capacity_util_pct > 0 ? Math.ceil(totalRouteKg / (route.capacity_util_pct / 100)) : totalRouteKg + 1
+
+  const assignedCapacityKg = assignedVehicle?.capacity_kg
+  const utilizationWithAssignedCapacity =
+    assignedCapacityKg && assignedCapacityKg > 0 ? (totalRouteKg / assignedCapacityKg) * 100 : null
+  const isAssignedCapacityConsistent =
+    utilizationWithAssignedCapacity !== null &&
+    Math.abs(utilizationWithAssignedCapacity - route.capacity_util_pct) <= 20
+
+  const displayedVehicleCapacityKg = isAssignedCapacityConsistent
+    ? Math.max(assignedCapacityKg ?? 0, totalRouteKg + 1)
+    : Math.max(inferredCapacityKg, totalRouteKg + 1)
+
+  const displayedTruckUsagePct =
+    route.capacity_util_pct > 0
+      ? Math.min(100, route.capacity_util_pct)
+      : Math.min(100, Math.round((totalRouteKg / displayedVehicleCapacityKg) * 100))
+
+  const formatInteger = (value: number) =>
+    new Intl.NumberFormat("es-CO", { maximumFractionDigits: 0 }).format(value)
+
+  const formatOneDecimal = (value: number) =>
+    new Intl.NumberFormat("es-CO", { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(value)
+
+  const getVehicleTypeLabel = (type?: string) => {
+    if (type === "truck") return "Camion"
+    if (type === "motorcycle") return "Motocicleta"
+    if (type === "van") return "Furgon"
+    return "No definido"
+  }
+
   return (
       <>
         <div className="mb-6">
           <Button variant="ghost" size="sm" className="mb-4" onClick={() => navigate(-1)}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Routes
+            Volver a Rutas
           </Button>
 
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-3">
                 <h2 className="text-3xl font-bold">{route.id}</h2>
-                <Badge className={getStatusColor(route.status)}>{route.status}</Badge>
+                <Badge className={getStatusColor(route.status)}>
+                  {route.status === "completed"
+                    ? "completada"
+                    : route.status === "in_progress"
+                      ? "en_progreso"
+                      : route.status === "planned"
+                        ? "planificada"
+                        : route.status}
+                </Badge>
               </div>
               <p className="text-muted-foreground">
                 {route.center.name} • {route.date}
@@ -102,7 +204,7 @@ export default function RouteDetailPage() {
             {route.status !== "completed" && (
               <Button onClick={handleMarkExecuted}>
                 <CheckCircle className="mr-2 h-4 w-4" />
-                Mark as Executed
+                Marcar como Ejecutada
               </Button>
             )}
           </div>
@@ -113,7 +215,7 @@ export default function RouteDetailPage() {
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle>Route Map</CardTitle>
+                <CardTitle>Mapa de Ruta</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-[500px] overflow-hidden rounded-lg">
@@ -123,6 +225,7 @@ export default function RouteDetailPage() {
                     routes={[route]}
                     mode="detail"
                     selectedRouteId={route.id}
+                    vehiclePosition={vehiclePosition}
                   />
                 </div>
               </CardContent>
@@ -131,7 +234,7 @@ export default function RouteDetailPage() {
             {/* Stops List */}
             <Card className="mt-6">
               <CardHeader>
-                <CardTitle>Stops ({route.stops.length})</CardTitle>
+                <CardTitle>Paradas ({route.stops.length})</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -139,9 +242,20 @@ export default function RouteDetailPage() {
                     const customer = customers.find((c) => c.id === stop.customer_id)
                     if (!customer) return null
 
+                    const isCompleted = completedStopIds.has(stop.customer_id)
+
                     return (
-                      <div key={stop.customer_id} className="flex items-start gap-3 rounded-lg border p-4">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
+                      <div
+                        key={stop.customer_id}
+                        className={`flex items-start gap-3 rounded-lg border p-4 ${
+                          isCompleted ? "border-green-300 bg-green-50/30" : ""
+                        }`}
+                      >
+                        <div
+                          className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium text-primary-foreground ${
+                            isCompleted ? "bg-green-600" : "bg-primary"
+                          }`}
+                        >
                           {stop.sequence}
                         </div>
                         <div className="flex-1">
@@ -149,9 +263,14 @@ export default function RouteDetailPage() {
                             <div>
                               <h4 className="font-medium">{customer.name}</h4>
                               <p className="text-sm text-muted-foreground">{customer.address}</p>
+                              <div className="mt-1">
+                                <Badge className={isCompleted ? "bg-green-50 text-green-800 border-green-800" : "bg-muted text-muted-foreground"}>
+                                  {isCompleted ? "Completada" : "Pendiente"}
+                                </Badge>
+                              </div>
                             </div>
                             <Button variant="ghost" size="sm" onClick={() => navigate(`/customers/${customer.id}`)}>
-                              View
+                              Ver
                             </Button>
                           </div>
                           <div className="mt-2 flex flex-wrap gap-4 text-sm text-muted-foreground">
@@ -185,67 +304,84 @@ export default function RouteDetailPage() {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Route KPIs</CardTitle>
+                <CardTitle>KPIs de Ruta</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <div className="text-sm text-muted-foreground">Estimated Distance</div>
-                  <div className="text-2xl font-bold">{route.estimated_km} km</div>
-                  {route.actual_km && <div className="text-sm text-muted-foreground">Actual: {route.actual_km} km</div>}
+                  <div className="text-sm text-muted-foreground">Distancia Estimada</div>
+                  <div className="text-2xl font-bold">{formatOneDecimal(route.estimated_km)} km</div>
+                  {route.actual_km && <div className="text-sm text-muted-foreground">Real: {formatOneDecimal(route.actual_km)} km</div>}
                 </div>
 
                 <div>
-                  <div className="text-sm text-muted-foreground">Estimated Time</div>
-                  <div className="text-2xl font-bold">{Math.round(route.estimated_time_min / 60)} hrs</div>
+                  <div className="text-sm text-muted-foreground">Tiempo Estimado</div>
+                  <div className="text-2xl font-bold">{formatOneDecimal(route.estimated_time_min / 60)} h</div>
                   {route.actual_time_min && (
                     <div className="text-sm text-muted-foreground">
-                      Actual: {Math.round(route.actual_time_min / 60)} hrs
+                      Real: {formatOneDecimal(route.actual_time_min / 60)} h
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <div className="text-sm text-muted-foreground">Capacity Utilization KG</div>
-                  <div className="text-2xl font-bold">{route.capacity_util_pct}%</div>
+                  <div className="text-sm text-muted-foreground">Utilización de Capacidad KG</div>
+                  <div className="text-2xl font-bold">{formatInteger(route.capacity_util_pct)}%</div>
                   <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
                     <div className="h-full bg-blue-400" style={{ width: `${route.capacity_util_pct}%` }} />
                   </div>
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">Total Weight</div>
+                  <div className="text-sm text-muted-foreground">Peso Total</div>
                   <div className="text-2xl font-bold">
-                    {route.stops.reduce((sum, stop) => sum + stop.order_kg, 0)} kg
+                    {formatInteger(totalRouteKg)} kg
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="text-sm text-muted-foreground">Número de Paradas</div>
+                  <div className="text-2xl font-bold">{formatInteger(route.stops.length)}</div>
+                </div>
+
+
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Información del Camión</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div>
+                  <div className="text-sm text-muted-foreground">Vehículo asignado</div>
+                  <div className="flex items-center gap-2 font-medium">
+                    <Truck className="h-4 w-4" />
+                    {assignedVehicle ? assignedVehicle.plate : route.vehicle_id}
                   </div>
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">Capacity Utilization HL</div>
-                  <div className="text-2xl font-bold">{route.capacity_util_pct_hl}%</div>
+                  <div className="text-sm text-muted-foreground">Tipo</div>
+                  <div className="font-medium">{getVehicleTypeLabel(assignedVehicle?.type)}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted-foreground">Capacidad del vehículo</div>
+                  <div className="font-medium">
+                    {formatInteger(displayedVehicleCapacityKg)} kg
+                  </div>
+                  {!isAssignedCapacityConsistent && (
+                    <div className="text-xs text-muted-foreground">Capacidad ajustada segun carga y utilizacion de la ruta</div>
+                  )}
+                </div>
+                <div>
+                  <div className="text-sm text-muted-foreground">Carga de la ruta</div>
+                  <div className="font-medium">{formatInteger(totalRouteKg)} kg</div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted-foreground">Uso estimado del camión</div>
+                  <div className="font-medium">{formatInteger(displayedTruckUsagePct)}%</div>
                   <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
-                    <div className="h-full bg-blue-400" style={{ width: `${route.capacity_util_pct_hl}%` }} />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-sm text-muted-foreground">Total Weight HL</div>
-                  <div className="text-2xl font-bold">
-                    {route.stops.reduce((sum, stop) => sum + stop.order_hl, 0)} hl
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-sm text-muted-foreground">Number of Stops</div>
-                  <div className="text-2xl font-bold">{route.stops.length}</div>
-                </div>
-
-                <div>
-                  <div className="text-sm text-muted-foreground">Coverage Percentage</div>
-                  <div className="text-2xl font-bold">
-                    {Math.max(90, Math.round(90 + (route.stops.length / Math.max(1, route.stops.length)) * 10))}%
-                  </div>
-                  <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
-                    <div 
-                      className="h-full bg-green-400" 
-                      style={{ width: `${Math.max(90, Math.round(90 + (route.stops.length / Math.max(1, route.stops.length)) * 10))}%` }} 
+                    <div
+                      className="h-full bg-blue-400"
+                      style={{ width: `${displayedTruckUsagePct}%` }}
                     />
                   </div>
                 </div>
@@ -254,24 +390,20 @@ export default function RouteDetailPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Center Information</CardTitle>
+                <CardTitle>Información del Centro</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <div>
-                  <div className="text-sm text-muted-foreground">Name</div>
+                  <div className="text-sm text-muted-foreground">Nombre</div>
                   <div className="font-medium">{route.center.name}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">Address</div>
+                  <div className="text-sm text-muted-foreground">Dirección</div>
                   <div className="font-medium">{route.center.address}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">Capacity KG</div>
-                  <div className="font-medium">{route.center.capacity_kg.toLocaleString()} kg</div>
-                </div>
-                <div>
-                  <div className="text-sm text-muted-foreground">Capacity HL</div>
-                  <div className="font-medium">{route.center.capacity_hl.toLocaleString()} hl</div>
+                  <div className="text-sm text-muted-foreground">Capacidad KG</div>
+                  <div className="font-medium">{formatInteger(route.center.capacity_kg)} kg</div>
                 </div>
               </CardContent>
             </Card>

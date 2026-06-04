@@ -7,10 +7,10 @@ interface ExportButtonProps {
   label?: string
 }
 
-export function ExportButton({ data, filename, label = "Export CSV" }: ExportButtonProps) {
+export function ExportButton({ data, filename, label = "Exportar CSV" }: ExportButtonProps) {
   const handleExport = () => {
     if (data.length === 0) {
-      alert("No data to export")
+      alert("No hay datos para exportar")
       return
     }
 

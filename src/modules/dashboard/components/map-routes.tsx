@@ -8,10 +8,26 @@ interface MapRoutesProps {
   mode?: "overview" | "detail"
   selectedRouteId?: string | null
   onRouteClick?: (routeId: string) => void
+  vehiclePosition?: {
+    lat: number
+    lng: number
+    label?: string
+  } | null
 }
 
 // Cache for OSRM routes
 const routeCache = new Map<string, [number, number][]>()
+
+const ROUTE_COLORS = [
+  { main: "#3b82f6", light: "#60a5fa" },
+  { main: "#ef4444", light: "#f87171" },
+  { main: "#10b981", light: "#34d399" },
+  { main: "#f59e0b", light: "#fbbf24" },
+  { main: "#8b5cf6", light: "#a78bfa" },
+  { main: "#ec4899", light: "#f472b6" },
+  { main: "#06b6d4", light: "#22d3ee" },
+  { main: "#84cc16", light: "#a3e635" },
+]
 
 // Function to get real route from OSRM
 async function getOSRMRoute(points: [number, number][]): Promise<[number, number][]> {
@@ -39,7 +55,7 @@ async function getOSRMRoute(points: [number, number][]): Promise<[number, number
       return routePoints
     }
   } catch (error) {
-    console.warn('Error fetching OSRM route, falling back to straight line:', error)
+    console.warn('Error al obtener la ruta OSRM, usando línea recta como alternativa:', error)
   }
   
   return points
@@ -52,12 +68,28 @@ export function MapRoutes({
   mode: _mode = "overview",
   selectedRouteId,
   onRouteClick,
+  vehiclePosition,
 }: MapRoutesProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<any>(null)
   const polylinesRef = useRef<Map<string, any>>(new Map())
   const markersRef = useRef<any[]>([])
   const [loadingRoutes, setLoadingRoutes] = useState(false)
+
+  const getRouteStatusLabel = (status: string) => {
+    switch (status) {
+      case "completed":
+        return "completada"
+      case "in_progress":
+        return "en_progreso"
+      case "planned":
+        return "planificada"
+      case "cancelled":
+        return "cancelada"
+      default:
+        return status
+    }
+  }
 
   useEffect(() => {
     if (typeof window === "undefined" || !mapRef.current) return
@@ -162,17 +194,36 @@ export function MapRoutes({
           markersRef.current.push(marker)
         })
 
-        // Route colors - vibrant palette
-        const routeColors = [
-          { main: "#3b82f6", light: "#60a5fa" }, // Blue
-          { main: "#ef4444", light: "#f87171" }, // Red
-          { main: "#10b981", light: "#34d399" }, // Green
-          { main: "#f59e0b", light: "#fbbf24" }, // Orange
-          { main: "#8b5cf6", light: "#a78bfa" }, // Purple
-          { main: "#ec4899", light: "#f472b6" }, // Pink
-          { main: "#06b6d4", light: "#22d3ee" }, // Cyan
-          { main: "#84cc16", light: "#a3e635" }, // Lime
-        ]
+        if (vehiclePosition) {
+          const vehicleIcon = L.divIcon({
+            className: "custom-vehicle-icon",
+            html: `<div style="
+              background: linear-gradient(135deg, #111827 0%, #374151 100%);
+              width: 30px;
+              height: 30px;
+              border-radius: 9999px;
+              border: 3px solid #ffffff;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 14px;
+            " class="marker-pulse">🚚</div>`,
+            iconSize: [30, 30],
+            iconAnchor: [15, 15],
+          })
+
+          const vehicleMarker = L.marker([vehiclePosition.lat, vehiclePosition.lng], { icon: vehicleIcon })
+            .addTo(map)
+            .bindPopup(`
+              <div style="font-family: system-ui; padding: 4px;">
+                <div style="font-weight: bold; font-size: 13px; margin-bottom: 4px;">🚚 Vehículo en ruta</div>
+                <div style="color: #4b5563; font-size: 12px;">${vehiclePosition.label ?? "Ubicación estimada en tiempo real"}</div>
+              </div>
+            `)
+
+          markersRef.current.push(vehicleMarker)
+        }
 
         polylinesRef.current.clear()
         setLoadingRoutes(true)
@@ -199,7 +250,7 @@ export function MapRoutes({
           if (!isMounted) return
 
           const isSelected = selectedRouteId === route.id
-          const colorScheme = routeColors[idx % routeColors.length]
+          const colorScheme = ROUTE_COLORS[idx % ROUTE_COLORS.length]
 
           // Outer shadow
           const shadow = L.polyline(routePoints, {
@@ -262,7 +313,7 @@ export function MapRoutes({
               .bindPopup(`
                 <div style="font-family: system-ui; padding: 4px;">
                   <div style="font-weight: bold; font-size: 13px; color: ${colorScheme.main}; margin-bottom: 4px;">
-                    Stop #${stopNumber}
+                    Parada #${stopNumber}
                   </div>
                   <div style="font-weight: 600; margin-bottom: 2px;">${customer.name}</div>
                   <div style="color: #666; font-size: 11px;">${customer.address}</div>
@@ -343,13 +394,13 @@ export function MapRoutes({
                 border-bottom: 2px solid ${colorScheme.main};
                 color: ${colorScheme.main};
               ">
-                🚚 Route ${route.id}
+                🚚 Ruta ${route.id}
               </div>
               <div style="display: grid; gap: 4px; font-size: 12px;">
-                <div><strong>Status:</strong> ${route.status}</div>
-                <div><strong>Stops:</strong> ${route.stops.length}</div>
-                <div><strong>Distance:</strong> ${route.estimated_km} km</div>
-                <div><strong>Capacity:</strong> ${route.capacity_util_pct}%</div>
+                <div><strong>Estado:</strong> ${getRouteStatusLabel(route.status)}</div>
+                <div><strong>Paradas:</strong> ${route.stops.length}</div>
+                <div><strong>Distancia:</strong> ${route.estimated_km} km</div>
+                <div><strong>Capacidad:</strong> ${route.capacity_util_pct}%</div>
               </div>
             </div>
           `
@@ -388,36 +439,67 @@ export function MapRoutes({
       markersRef.current = []
       document.head.removeChild(style)
     }
-  }, [centers, customers, routes, selectedRouteId, onRouteClick])
+  }, [centers, customers, routes, selectedRouteId, onRouteClick, vehiclePosition])
 
   return (
     <div className="relative h-full w-full">
-      <div ref={mapRef} className="h-full w-full rounded-lg" />
+      <div ref={mapRef} className="h-full w-full rounded-lg z-0" />
       {loadingRoutes && (
-        <div className="absolute top-4 right-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 backdrop-blur-sm">
+        <div className="absolute top-4 right-4 z-[1000] bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 backdrop-blur-sm pointer-events-none">
           <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin" />
-          <span className="font-medium">Calculating optimal routes...</span>
+          <span className="font-medium">Calculando rutas óptimas...</span>
         </div>
       )}
       
       {/* Route legend */}
-      <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm p-4 rounded-lg shadow-lg max-w-xs">
+      <div className="absolute bottom-4 left-4 z-[1000] bg-white/95 backdrop-blur-sm p-4 rounded-lg shadow-lg max-w-xs pointer-events-auto">
         <div className="font-bold text-sm mb-2 flex items-center gap-2">
-          <span>📍</span> Legend
+          <span>📍</span> Leyenda
         </div>
         <div className="space-y-2 text-xs">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-white text-xs">🏢</div>
-            <span>Distribution center</span>
+            <span>Centro de distribución</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">1</div>
-            <span>Numbered stop</span>
+            <span>Parada numerada</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="text-blue-500 text-lg">▲</div>
-            <span>Route direction</span>
+            <span>Dirección de ruta</span>
           </div>
+          {vehiclePosition && (
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-gray-800 text-white flex items-center justify-center text-xs">🚚</div>
+              <span>Vehículo en progreso</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="absolute bottom-4 right-4 z-[1000] bg-white/95 backdrop-blur-sm p-4 rounded-lg shadow-lg w-64 max-h-56 overflow-y-auto pointer-events-auto">
+        <div className="font-bold text-sm mb-2 flex items-center gap-2">
+          <span>🛣️</span> Colores por ruta
+        </div>
+        <div className="space-y-2 text-xs">
+          {routes.map((route, idx) => {
+            const colorScheme = ROUTE_COLORS[idx % ROUTE_COLORS.length]
+            const isSelected = selectedRouteId === route.id
+
+            return (
+              <div key={route.id} className="flex items-center justify-between gap-2 rounded-md border px-2 py-1.5">
+                <div className="flex items-center gap-2">
+                  <span
+                    className="inline-block h-3 w-6 rounded-sm"
+                    style={{ backgroundColor: colorScheme.main }}
+                  />
+                  <span>{route.id}</span>
+                </div>
+                {isSelected && <span className="text-[10px] font-semibold text-blue-600">Seleccionada</span>}
+              </div>
+            )
+          })}
         </div>
       </div>
     </div>

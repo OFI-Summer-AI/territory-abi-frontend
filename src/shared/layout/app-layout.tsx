@@ -8,27 +8,27 @@ function AppLayout() {
       <header className="border-b bg-card">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2">
-            <img src="https://www.generixgroup.com/wp-content/uploads/2024/01/AB-Inbev-logo_1-e1707387381682.png" alt="AB InBev" className="h-10 w-40" />
+            <span className="text-lg font-semibold">Planificador de Territorio</span>
           </div>
           <nav className="flex items-center gap-2">
             <Button asChild variant="ghost">
               <NavLink to="/" end>
-                Dashboard
+                Panel
               </NavLink>
             </Button>
             <Button asChild variant="ghost">
               <NavLink to="/routes">
-                Routes
+                Rutas
               </NavLink>
             </Button>
             <Button asChild variant="ghost">
               <NavLink to="/simulator" className={({ isActive }) => (isActive ? "font-semibold" : undefined)}>
-                Simulator
+                Simulador
               </NavLink>
             </Button>
             <Button asChild variant="ghost">
               <NavLink to="/reports">
-                Reports
+                Informes
               </NavLink>
             </Button>
             <ChatModal />
