@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
+import { CustomerTable } from "@/modules/customer/customer-table"
 import { KpiCard } from "@/modules/dashboard/components/kpi-card"
 import { Button } from "@/shared/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
@@ -531,7 +532,6 @@ export default function DashboardPage() {
                         borderRadius: "8px",
                       }}
                     />
-                    <Legend />
                     {ratioCostoEnvioClienteData.length > 0 && (
                       <Pie
                         data={ratioCostoEnvioClienteData}
@@ -641,6 +641,15 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
           </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Clientes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CustomerTable customers={customers} />
+            </CardContent>
+          </Card>
         </div>
       </>
   )

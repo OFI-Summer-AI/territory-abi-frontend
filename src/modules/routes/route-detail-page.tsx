@@ -5,7 +5,7 @@ import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 import { getRoute } from "@/modules/lib/api"
 import type { Route, Center, Customer } from "@/modules/lib/types"
-import { ArrowLeft, CheckCircle, Clock, Package, MapPin, Beer } from "lucide-react"
+import { ArrowLeft, CheckCircle, Clock, Package, MapPin, Beer, Truck } from "lucide-react"
 
 import { MapRoutes } from "@/modules/dashboard/components/map-routes"
 
@@ -25,8 +25,8 @@ export default function RouteDetailPage() {
         setRoute(routeData)
         // Use enriched customers from route stops for accuracy in detail view
         const enriched = routeData.stops
-          .map((s: any) => s.customer)
-          .filter((c: any): c is Customer => Boolean(c))
+          .map((s) => (s as typeof s & { customer?: Customer }).customer)
+          .filter((c): c is Customer => Boolean(c))
         setCustomers(enriched)
       } catch (error) {
         console.error("[Error loading route details:", error)
@@ -80,6 +80,34 @@ export default function RouteDetailPage() {
   const routeCustomers = route.stops
     .map((stop) => customers.find((c) => c.id === stop.customer_id))
     .filter((c): c is Customer => c !== undefined)
+
+  const assignedVehicle = route.center.vehicles?.find((vehicle) => vehicle.id === route.vehicle_id)
+  const totalRouteKg = route.stops.reduce((sum, stop) => sum + stop.order_kg, 0)
+  const inferredCapacityKg =
+    route.capacity_util_pct > 0 ? Math.ceil(totalRouteKg / (route.capacity_util_pct / 100)) : totalRouteKg + 1
+
+  const assignedCapacityKg = assignedVehicle?.capacity_kg
+  const utilizationWithAssignedCapacity =
+    assignedCapacityKg && assignedCapacityKg > 0 ? (totalRouteKg / assignedCapacityKg) * 100 : null
+  const isAssignedCapacityConsistent =
+    utilizationWithAssignedCapacity !== null &&
+    Math.abs(utilizationWithAssignedCapacity - route.capacity_util_pct) <= 20
+
+  const displayedVehicleCapacityKg = isAssignedCapacityConsistent
+    ? Math.max(assignedCapacityKg ?? 0, totalRouteKg + 1)
+    : Math.max(inferredCapacityKg, totalRouteKg + 1)
+
+  const displayedTruckUsagePct =
+    route.capacity_util_pct > 0
+      ? Math.min(100, route.capacity_util_pct)
+      : Math.min(100, Math.round((totalRouteKg / displayedVehicleCapacityKg) * 100))
+
+  const getVehicleTypeLabel = (type?: string) => {
+    if (type === "truck") return "Camion"
+    if (type === "motorcycle") return "Motocicleta"
+    if (type === "van") return "Furgon"
+    return "No definido"
+  }
 
   return (
       <>
@@ -222,7 +250,7 @@ export default function RouteDetailPage() {
                 <div>
                   <div className="text-sm text-muted-foreground">Peso Total</div>
                   <div className="text-2xl font-bold">
-                    {route.stops.reduce((sum, stop) => sum + stop.order_kg, 0)} kg
+                    {totalRouteKg} kg
                   </div>
                 </div>
                 
@@ -231,15 +259,44 @@ export default function RouteDetailPage() {
                   <div className="text-2xl font-bold">{route.stops.length}</div>
                 </div>
 
+
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Información del Camión</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
                 <div>
-                  <div className="text-sm text-muted-foreground">Porcentaje de Cobertura</div>
-                  <div className="text-2xl font-bold">
-                    {Math.max(90, Math.round(90 + (route.stops.length / Math.max(1, route.stops.length)) * 10))}%
+                  <div className="text-sm text-muted-foreground">Vehículo asignado</div>
+                  <div className="flex items-center gap-2 font-medium">
+                    <Truck className="h-4 w-4" />
+                    {assignedVehicle ? assignedVehicle.plate : route.vehicle_id}
                   </div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted-foreground">Tipo</div>
+                  <div className="font-medium">{getVehicleTypeLabel(assignedVehicle?.type)}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted-foreground">Capacidad del vehículo</div>
+                  <div className="font-medium">
+                    {displayedVehicleCapacityKg.toLocaleString()} kg
+                  </div>
+                  {!isAssignedCapacityConsistent}
+                </div>
+                <div>
+                  <div className="text-sm text-muted-foreground">Carga de la ruta</div>
+                  <div className="font-medium">{totalRouteKg.toLocaleString()} kg</div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted-foreground">Uso estimado del camión</div>
+                  <div className="font-medium">{displayedTruckUsagePct}%</div>
                   <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
-                    <div 
-                      className="h-full bg-green-400" 
-                      style={{ width: `${Math.max(90, Math.round(90 + (route.stops.length / Math.max(1, route.stops.length)) * 10))}%` }} 
+                    <div
+                      className="h-full bg-blue-400"
+                      style={{ width: `${displayedTruckUsagePct}%` }}
                     />
                   </div>
                 </div>
@@ -262,10 +319,6 @@ export default function RouteDetailPage() {
                 <div>
                   <div className="text-sm text-muted-foreground">Capacidad KG</div>
                   <div className="font-medium">{route.center.capacity_kg.toLocaleString()} kg</div>
-                </div>
-                <div>
-                  <div className="text-sm text-muted-foreground">Capacidad HL</div>
-                  <div className="font-medium">{route.center.capacity_hl.toLocaleString()} hl</div>
                 </div>
               </CardContent>
             </Card>
