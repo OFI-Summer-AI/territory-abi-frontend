@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Badge } from "@/shared/ui/badge"
 import type { Customer } from "@/modules/lib/types"
-import { MapPin, Calendar, AlertCircle, Beer } from "lucide-react"
+import { MapPin, Calendar, AlertCircle } from "lucide-react"
 
 interface CustomerCardProps {
   customer: Customer

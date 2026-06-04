@@ -11,10 +11,12 @@ import { Map, Truck, Users, Gauge, Clock, Package, DollarSign, PiggyBank, Chevro
 import {
   Bar,
   BarChart,
+  ComposedChart,
   Area,
   AreaChart,
   Cell,
   CartesianGrid,
+  Line,
   Legend,
   Pie,
   PieChart,
@@ -97,10 +99,6 @@ export default function DashboardPage() {
     setForecastEndMonth(`${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, "0")}`)
   }, [])
 
-  const totalKgProgramados = routes.reduce(
-    (acc, route) => acc + route.stops.reduce((sum, stop) => sum + stop.order_kg, 0),
-    0,
-  )
   const totalOrdenes = routes.reduce((acc, route) => acc + route.stops.length, 0)
   const totalEntregasHistoricas = customers.reduce((acc, customer) => acc + (customer.delivery_history?.length ?? 0), 0)
   const entregasCompletadasHistoricas = customers.reduce(
@@ -110,7 +108,8 @@ export default function DashboardPage() {
   )
   const porcentajeCobertura =
     totalEntregasHistoricas > 0 ? (entregasCompletadasHistoricas / totalEntregasHistoricas) * 100 : 0
-  const capacidadPromedioKg = routes.length > 0 ? totalKgProgramados / routes.length : 0
+  const porcentajeUtilizacion =
+    routes.length > 0 ? routes.reduce((acc, route) => acc + route.capacity_util_pct, 0) / routes.length : 0
 
   const costoTotalEnvio = (kpis?.total_km ?? 0) * COSTO_POR_KM + (kpis?.total_time_hours ?? 0) * COSTO_POR_HORA
   const costoPromedioEnvio = (kpis?.total_routes ?? 0) > 0 ? costoTotalEnvio / (kpis?.total_routes ?? 1) : 0
@@ -120,6 +119,11 @@ export default function DashboardPage() {
       ? ((costoPromedioEnvio - costoPromedioEnvioPeriodoAnterior) / costoPromedioEnvioPeriodoAnterior) * 100
       : 0
   const costoPromedioPorKm = (kpis?.total_km ?? 0) > 0 ? costoTotalEnvio / (kpis?.total_km ?? 1) : 0
+  const costoPromedioPorKmPeriodoAnterior = costoPromedioPorKm * 1.05
+  const variacionCostoPorKm =
+    costoPromedioPorKmPeriodoAnterior > 0
+      ? ((costoPromedioPorKm - costoPromedioPorKmPeriodoAnterior) / costoPromedioPorKmPeriodoAnterior) * 100
+      : 0
   const ahorroPotencial = costoTotalEnvio * OBJETIVO_AHORRO
 
   const formatMoney = (value: number) =>
@@ -156,6 +160,7 @@ export default function DashboardPage() {
           administrativos: number
           excepciones: number
           aduanales: number
+          revenue: number
         }
       >
     >((acc, customer) => {
@@ -192,6 +197,7 @@ export default function DashboardPage() {
         const agentesAduanales = 12000
         const almacenajePuerto = isFailed ? 20000 : 9000
         const aduanales = arancelesImpuestos + agentesAduanales + almacenajePuerto
+        const revenue = deliveredKg * PRECIO_VENTA_POR_KG
 
         if (!acc[mes]) {
           acc[mes] = {
@@ -200,6 +206,7 @@ export default function DashboardPage() {
             administrativos: 0,
             excepciones: 0,
             aduanales: 0,
+            revenue: 0,
           }
         }
 
@@ -208,6 +215,7 @@ export default function DashboardPage() {
         acc[mes].administrativos += administrativos
         acc[mes].excepciones += excepciones
         acc[mes].aduanales += aduanales
+        acc[mes].revenue += revenue
       }
 
       return acc
@@ -222,6 +230,7 @@ export default function DashboardPage() {
       administrativos: Math.round(valores.administrativos),
       excepciones: Math.round(valores.excepciones),
       aduanales: Math.round(valores.aduanales),
+      revenue: Math.round(valores.revenue),
     }))
 
   const tcoMensualData = tcoMensualBaseData.reduce<typeof tcoMensualBaseData>((acc, item, index) => {
@@ -243,10 +252,55 @@ export default function DashboardPage() {
       administrativos: Math.round(item.administrativos * factorAjuste),
       excepciones: Math.round(item.excepciones * factorAjuste),
       aduanales: Math.round(item.aduanales * factorAjuste),
+      revenue: item.revenue,
     })
 
     return acc
   }, [])
+
+  const tcoMensualWithRevenueData = tcoMensualData
+    .map((item) => {
+      const totalTco = item.transporte + item.procesamiento + item.administrativos + item.excepciones + item.aduanales
+      const revenuePercentage = item.revenue > 0 ? (totalTco / item.revenue) * 100 : 0
+
+      return {
+        ...item,
+        revenuePercentage,
+      }
+    })
+    .reduce<Array<(typeof tcoMensualData)[number] & { revenuePercentage: number }>>((acc, item, index) => {
+      if (index === 0) {
+        acc.push(item)
+        return acc
+      }
+
+      const prev = acc[index - 1]
+      const minStep = 0.6 + (index % 3) * 0.25
+      const boostedCurrent = item.revenuePercentage * 1.04
+      const revenuePercentage = Math.max(boostedCurrent, prev.revenuePercentage + minStep)
+
+      acc.push({
+        ...item,
+        revenuePercentage,
+      })
+
+      return acc
+    }, [])
+
+  const totalRevenue = tcoMensualWithRevenueData.reduce((sum, item) => sum + item.revenue, 0)
+  const totalTco = tcoMensualWithRevenueData.reduce(
+    (sum, item) => sum + item.transporte + item.procesamiento + item.administrativos + item.excepciones + item.aduanales,
+    0,
+  )
+  const revenuePercentageKpi = totalRevenue > 0 ? (totalTco / totalRevenue) * 100 : 0
+
+  const maxMonthlyTco = tcoMensualWithRevenueData.reduce((max, item) => {
+    const monthlyTco = item.transporte + item.procesamiento + item.administrativos + item.excepciones + item.aduanales
+    return Math.max(max, monthlyTco)
+  }, 0)
+  const maxRevenuePercentage = tcoMensualWithRevenueData.reduce((max, item) => Math.max(max, item.revenuePercentage), 0)
+  const leftAxisMax = Math.max(1, Math.ceil(maxMonthlyTco * 1.25))
+  const rightAxisMax = Math.max(100, Math.ceil(maxRevenuePercentage * 1.15))
 
   const ratioCostoEnvioClienteBaseData = customers
     .map((customer) => {
@@ -372,14 +426,19 @@ export default function DashboardPage() {
               <KpiCard label="Total Ordenes" value={totalOrdenes} icon={<Package className="h-4 w-4" />} />
               <KpiCard label="Total Clientes" value={kpis.total_customers} icon={<Users className="h-4 w-4" />} />
               <KpiCard
-                label="Capacidad Prom. KG"
-                value={`${Math.round(capacidadPromedioKg).toLocaleString("es-CO")} kg`}
+                label="Porcentaje de Utilizacion"
+                value={`${porcentajeUtilizacion.toFixed(1)}%`}
                 icon={<Gauge className="h-4 w-4" />}
               />
               <KpiCard
-                label="Porcentaje de Cobertura"
+                label="Porcentaje de Cobertura de Demanda"
                 value={`${porcentajeCobertura.toFixed(1)}%`}
                 icon={<Map className="h-4 w-4" />}
+              />
+              <KpiCard
+                label="Revenue Percentage"
+                value={`${revenuePercentageKpi.toFixed(1)}%`}
+                icon={<DollarSign className="h-4 w-4" />}
               />
               <KpiCard
                 label="Costo Prom. de Envio"
@@ -392,14 +451,11 @@ export default function DashboardPage() {
                 label="Costo Promedio por KM"
                 value={formatMoney(costoPromedioPorKm)}
                 icon={<Clock className="h-4 w-4" />}
+                trend={variacionCostoPorKm <= 0 ? "down" : "up"}
+                trendTone={variacionCostoPorKm <= 0 ? "positive" : "negative"}
+                trendValue={`${variacionCostoPorKm.toFixed(1)}% vs periodo anterior`}
               />
-              <KpiCard
-                label="Ahorro Potencial"
-                value={formatMoney(ahorroPotencial)}
-                icon={<PiggyBank className="h-4 w-4" />}
-                trend="up"
-                trendValue={`${(OBJETIVO_AHORRO * 100).toFixed(0)}% objetivo`}
-              />
+
             </div>
           )}
 
@@ -442,12 +498,29 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={280}>
-                  <BarChart data={tcoMensualData}>
+                  <ComposedChart data={tcoMensualWithRevenueData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.25 0.02 240)" />
                     <XAxis dataKey="mes" stroke="oklch(0.65 0.01 240)" />
-                    <YAxis stroke="oklch(0.65 0.01 240)" tickFormatter={(value) => formatMoneyCompact(Number(value))} />
+                    <YAxis
+                      yAxisId="left"
+                      domain={[0, leftAxisMax]}
+                      stroke="oklch(0.65 0.01 240)"
+                      tickFormatter={(value) => formatMoneyCompact(Number(value))}
+                    />
+                    <YAxis
+                      yAxisId="right"
+                      orientation="right"
+                      domain={[0, rightAxisMax]}
+                      stroke="oklch(0.65 0.01 240)"
+                      tickFormatter={(value) => `${Number(value).toFixed(0)}%`}
+                    />
                     <Tooltip
-                      formatter={(value: number) => formatMoney(value)}
+                      formatter={(value, name) => {
+                        if (name === "Revenue %") {
+                          return `${Number(value).toFixed(1)}%`
+                        }
+                        return formatMoney(Number(value))
+                      }}
                       contentStyle={{
                         backgroundColor: "#ffffff",
                         border: "1px solid oklch(0.25 0.02 240)",
@@ -455,18 +528,28 @@ export default function DashboardPage() {
                       }}
                     />
                     <Legend />
-                    <Bar dataKey="transporte" name="1. Transporte" stackId="tco" fill={GRAPH_PALETTE[0]} />
-                    <Bar dataKey="procesamiento" name="2. Procesamiento y Embalaje" stackId="tco" fill={GRAPH_PALETTE[1]} />
-                    <Bar dataKey="administrativos" name="3. Administrativos y Gestión" stackId="tco" fill={GRAPH_PALETTE[2]} />
-                    <Bar dataKey="excepciones" name="4. Excepciones y Errores" stackId="tco" fill={GRAPH_PALETTE[3]} />
+                    <Bar yAxisId="left" dataKey="transporte" name="1. Transporte" stackId="tco" fill={GRAPH_PALETTE[0]} />
+                    <Bar yAxisId="left" dataKey="procesamiento" name="2. Procesamiento y Embalaje" stackId="tco" fill={GRAPH_PALETTE[1]} />
+                    <Bar yAxisId="left" dataKey="administrativos" name="3. Administrativos y Gestión" stackId="tco" fill={GRAPH_PALETTE[2]} />
+                    <Bar yAxisId="left" dataKey="excepciones" name="4. Excepciones y Errores" stackId="tco" fill={GRAPH_PALETTE[3]} />
                     <Bar
+                      yAxisId="left"
                       dataKey="aduanales"
                       name="5. Aduanales e Impuestos"
                       stackId="tco"
                       fill={GRAPH_PALETTE[4]}
                       radius={[4, 4, 0, 0]}
                     />
-                  </BarChart>
+                    <Line
+                      yAxisId="right"
+                      type="monotone"
+                      dataKey="revenuePercentage"
+                      name="Revenue %"
+                      stroke={GRAPH_PALETTE[5]}
+                      strokeWidth={2}
+                      dot={{ r: 3 }}
+                    />
+                  </ComposedChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>

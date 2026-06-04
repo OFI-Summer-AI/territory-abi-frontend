@@ -7,11 +7,20 @@ interface KpiCardProps {
   value: string | number
   trend?: "up" | "down" | "stable"
   trendValue?: string
+  trendTone?: "positive" | "negative" | "neutral"
   icon?: React.ReactNode
 }
 
-export function KpiCard({ label, value, trend, trendValue, icon }: KpiCardProps) {
+export function KpiCard({ label, value, trend, trendValue, trendTone, icon }: KpiCardProps) {
   const TrendIcon = trend === "up" ? TrendingUp : trend === "down" ? TrendingDown : Minus
+  const resolvedTone =
+    trendTone ?? (trend === "up" ? "positive" : trend === "down" ? "negative" : "neutral")
+  const trendColorClass =
+    resolvedTone === "positive"
+      ? "text-chart-2"
+      : resolvedTone === "negative"
+        ? "text-destructive"
+        : "text-muted-foreground"
 
   return (
     <Card>
@@ -23,16 +32,8 @@ export function KpiCard({ label, value, trend, trendValue, icon }: KpiCardProps)
         <div className="text-2xl font-bold">{value}</div>
         {trend && trendValue && (
           <div className="mt-1 flex items-center gap-1 text-xs">
-            <TrendIcon
-              className={`h-3 w-3 ${
-                trend === "up" ? "text-chart-2" : trend === "down" ? "text-destructive" : "text-muted-foreground"
-              }`}
-            />
-            <span
-              className={
-                trend === "up" ? "text-chart-2" : trend === "down" ? "text-destructive" : "text-muted-foreground"
-              }
-            >
+            <TrendIcon className={`h-3 w-3 ${trendColorClass}`} />
+            <span className={trendColorClass}>
               {trendValue}
             </span>
           </div>

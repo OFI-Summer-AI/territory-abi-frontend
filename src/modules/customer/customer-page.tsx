@@ -104,9 +104,8 @@ export default function CustomerDetailPage() {
   const totalDeliveredKG = deliveries.reduce((sum, d) => sum + (d.delivered_hl || 0) * conversionFactor, 0)
   const avgKGPerDelivery = totalDeliveries > 0 ? Math.round(totalDeliveredKG / totalDeliveries) : 0
 
-  const capacidadPromedioKg = customer.avg_order_kg
-
   const totalKgPedido = deliveries.reduce((sum, d) => sum + (d.ordered_hl || 0) * conversionFactor, 0)
+  const porcentajeUtilizacion = totalKgPedido > 0 ? Math.min(100, (totalDeliveredKG / totalKgPedido) * 100) : 0
   const costoFijoTotal = totalDeliveries * COSTO_FIJO_ENVIO
   const costoVariableTotal = totalKgPedido * COSTO_POR_KG
   const costoIncidenciasTotal = failedDeliveries * COSTO_REINTENTO
@@ -115,8 +114,6 @@ export default function CustomerDetailPage() {
   const margenTotalCliente = ingresoTotalCliente - costoTotalCliente
   const margenPctCliente = ingresoTotalCliente > 0 ? (margenTotalCliente / ingresoTotalCliente) * 100 : 0
   const ratioCostoIngreso = ingresoTotalCliente > 0 ? (costoTotalCliente / ingresoTotalCliente) * 100 : 0
-  const ticketPromedioEntrega = completedDeliveries > 0 ? ingresoTotalCliente / completedDeliveries : 0
-
   const costoPromedioEnvio = totalDeliveries > 0 ? costoTotalCliente / totalDeliveries : 0
   const costoPromedioEnvioPeriodoAnterior = costoPromedioEnvio * 1.08
   const variacionCostoEnvio =
@@ -287,8 +284,8 @@ export default function CustomerDetailPage() {
                 icon={<PiggyBank className="h-4 w-4" />}
               />
               <KpiCard
-                label="Capacidad Prom. KG"
-                value={`${Math.round(capacidadPromedioKg).toLocaleString("es-CO")} kg`}
+                label="Porcentaje de Utilizacion"
+                value={`${porcentajeUtilizacion.toFixed(1)}%`}
                 icon={<Gauge className="h-4 w-4" />}
               />
               <KpiCard
@@ -465,7 +462,7 @@ export default function CustomerDetailPage() {
                       cx="50%"
                       cy="50%"
                       outerRadius={95}
-                      label={({ name, percent }) => `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`}
+                      label={({ name, percent }) => `${name}: ${(Number(percent ?? 0) * 100).toFixed(0)}%`}
                     >
                       {costBreakdownData.map((entry, index) => (
                         <Cell key={entry.name} fill={costBreakdownColors[index % costBreakdownColors.length]} />
