@@ -279,7 +279,7 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
                     <h4 className="font-medium">{suggestion.description}</h4>
                     <p className="text-sm text-muted-foreground mt-1">
                       Tipo: {getSuggestionTypeLabel(suggestion.type)} • 
-                      HL/Km: {suggestion.expected_benefit.efficiency_hl_km.toFixed(2)}
+                      Kg/Km: {suggestion.expected_benefit.efficiency_hl_km.toFixed(2)}
                     </p>
                   </div>
                   <Badge 
@@ -306,7 +306,7 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
                     <div className="font-medium text-green-600">
                       {suggestion.expected_benefit.efficiency_hl_km.toFixed(2)}
                     </div>
-                    <div className="text-muted-foreground">Eficiencia HL/Km</div>
+                    <div className="text-muted-foreground">Eficiencia Kg/Km</div>
                   </div>
                   <div>
                     <div className="font-medium">
@@ -390,7 +390,7 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
                         <span>{impact_analysis.before.compliance_rate.toFixed(1)}%</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Eficiencia HL/Km:</span>
+                        <span>Eficiencia Kg/Km:</span>
                         <span>{impact_analysis.before.avg_hl_km_efficiency.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
@@ -409,7 +409,7 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Eficiencia HL/Km:</span>
+                        <span>Eficiencia Kg/Km:</span>
                         <span className="text-green-600">
                           {impact_analysis.after.avg_hl_km_efficiency.toFixed(2)}
                         </span>

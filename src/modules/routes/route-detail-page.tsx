@@ -225,14 +225,7 @@ export default function RouteDetailPage() {
                     {route.stops.reduce((sum, stop) => sum + stop.order_kg, 0)} kg
                   </div>
                 </div>
-                <div>
-                  <div className="text-sm text-muted-foreground">Utilización de Capacidad HL</div>
-                  <div className="text-2xl font-bold">{route.capacity_util_pct_hl}%</div>
-                  <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
-                    <div className="h-full bg-blue-400" style={{ width: `${route.capacity_util_pct_hl}%` }} />
-                  </div>
-                </div>
-
+                
                 <div>
                   <div className="text-sm text-muted-foreground">Número de Paradas</div>
                   <div className="text-2xl font-bold">{route.stops.length}</div>

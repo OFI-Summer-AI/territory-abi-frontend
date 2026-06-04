@@ -52,6 +52,6 @@ export async function getKpis(date?: string): Promise<KpiSummary> {
   return dataService.getKpis(date)
 }
 
-export async function simulateCompliance(centerId: string): Promise<ComplianceSimulationResult> {
-  return dataService.simulateCompliance(centerId)
+export async function simulateCompliance(centerId: string, date?: string): Promise<ComplianceSimulationResult> {
+  return dataService.simulateCompliance(centerId, date)
 }

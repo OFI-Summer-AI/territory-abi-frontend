@@ -13,12 +13,16 @@ interface SimulatorPanelProps {
   centers: Center[]
   onSimulate: (centerId: string, date: string) => void
   loading?: boolean
+  loadingMessage?: string
+  loadingProgress?: number
 }
 
 export function SimulatorPanel({
   centers,
   onSimulate,
   loading,
+  loadingMessage,
+  loadingProgress,
 }: SimulatorPanelProps) {
   const [selectedCenter, setSelectedCenter] = useState<string>(centers[0]?.id || "")
   const [selectedDate, setSelectedDate] = useState<string>("2025-01-11")
@@ -111,6 +115,21 @@ export function SimulatorPanel({
           <Play className="mr-2 h-4 w-4" />
           {loading ? "Generando..." : "Generar Predicciones y Análisis"}
         </Button>
+
+        {loading && (
+          <div className="rounded-lg border bg-muted/50 p-3">
+            <div className="mb-2 flex items-center gap-2">
+              <div className="h-3 w-3 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
+              <p className="text-sm font-medium">{loadingMessage || "Ejecutando agente de analisis..."}</p>
+            </div>
+            <div className="h-2 w-full overflow-hidden rounded-full bg-background">
+              <div
+                className="h-full bg-primary transition-all duration-300"
+                style={{ width: `${loadingProgress ?? 0}%` }}
+              />
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   )

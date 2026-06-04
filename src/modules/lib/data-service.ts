@@ -19,6 +19,158 @@ const centers = centersData as Center[]
 const customers = customersData as Customer[]
 const routes = routesData as Route[]
 
+const FREQUENCY_DAYS: Record<Customer["frequency"], number> = {
+  daily: 1,
+  weekly: 7,
+  biweekly: 14,
+  monthly: 30,
+}
+
+function toHourNumber(value?: string): number {
+  if (!value) return 12
+  const [hh, mm] = value.split(":").map(Number)
+  if (Number.isNaN(hh) || Number.isNaN(mm)) return 12
+  return hh + mm / 60
+}
+
+function getAverageFrequencyDays(deliveries: Customer["delivery_history"]): number {
+  const history = [...(deliveries ?? [])].sort((a, b) => a.date.localeCompare(b.date))
+  if (history.length < 2) return 0
+
+  let totalDiffDays = 0
+  for (let i = 1; i < history.length; i++) {
+    const prev = new Date(history[i - 1].date)
+    const cur = new Date(history[i].date)
+    const diffDays = Math.max(0, (cur.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24))
+    totalDiffDays += diffDays
+  }
+
+  return totalDiffDays / (history.length - 1)
+}
+
+function buildOptimizedRoutes(centerId: string, date: string): { currentRoutes: Route[]; proposedRoutes: Route[] } {
+  const currentRoutes = routes.filter((r) => r.center_id === centerId && r.date === date)
+
+  if (currentRoutes.length > 0) {
+    const proposedRoutes = currentRoutes.map((route, index) => {
+      const optimizedStops = [...route.stops].sort((a, b) => {
+        const customerA = customers.find((c) => c.id === a.customer_id)
+        const customerB = customers.find((c) => c.id === b.customer_id)
+        const priorityWeight = (priority?: Customer["priority"]) =>
+          priority === "high" ? 3 : priority === "medium" ? 2 : 1
+
+        const priorityDiff = priorityWeight(customerB?.priority) - priorityWeight(customerA?.priority)
+        if (priorityDiff !== 0) return priorityDiff
+        return (b.order_kg ?? 0) - (a.order_kg ?? 0)
+      })
+
+      const resequencedStops = optimizedStops.map((stop, stopIndex) => ({
+        ...stop,
+        sequence: stopIndex + 1,
+      }))
+
+      const distanceReductionFactor = 0.9 - Math.min(0.05, Math.max(0, route.stops.length - 8) * 0.003)
+      const timeReductionFactor = 0.88 - Math.min(0.04, Math.max(0, route.stops.length - 8) * 0.002)
+      const optimizedKm = Math.max(5, route.estimated_km * distanceReductionFactor)
+      const optimizedTimeMin = Math.max(120, route.estimated_time_min * timeReductionFactor)
+      const optimizedCapacity = Math.min(98, Math.max(85, route.capacity_util_pct + 8 + (index % 3)))
+      const optimizedCapacityHl = Math.min(98, Math.max(80, route.capacity_util_pct_hl + 8 + (index % 3)))
+
+      return {
+        ...route,
+        id: `opt-${route.id}`,
+        status: "planned" as const,
+        stops: resequencedStops,
+        estimated_km: Math.round(optimizedKm * 10) / 10,
+        estimated_time_min: Math.round(optimizedTimeMin),
+        capacity_util_pct: Math.round(optimizedCapacity),
+        capacity_util_pct_hl: Math.round(optimizedCapacityHl),
+      }
+    })
+
+    return { currentRoutes, proposedRoutes }
+  }
+
+  const centerCustomers = customers.filter((c) => c.center_id === centerId)
+  const chunkSize = 8
+  const proposedRoutes: Route[] = []
+
+  for (let i = 0; i < centerCustomers.length; i += chunkSize) {
+    const chunk = centerCustomers.slice(i, i + chunkSize)
+    const stops = chunk.map((customer, index) => ({
+      customer_id: customer.id,
+      sequence: index + 1,
+      estimated_arrival: `${8 + Math.floor(index * 0.75)}:${index % 2 === 0 ? "00" : "30"}`,
+      estimated_duration_min: 12 + Math.round(customer.avg_order_kg / 70),
+      order_kg: customer.avg_order_kg,
+      order_hl: customer.avg_order_hl,
+    }))
+
+    const totalKg = chunk.reduce((sum, c) => sum + c.avg_order_kg, 0)
+    const estimatedKm = 20 + chunk.length * 3.2
+    const estimatedTimeMin = 180 + chunk.length * 18
+
+    proposedRoutes.push({
+      id: `opt-sim-route-${String(proposedRoutes.length + 1).padStart(2, "0")}`,
+      center_id: centerId,
+      vehicle_id: `vehicle-opt-${proposedRoutes.length + 1}`,
+      date,
+      status: "planned",
+      stops,
+      estimated_km: Math.round(estimatedKm * 10) / 10,
+      estimated_time_min: Math.round(estimatedTimeMin),
+      capacity_util_pct: Math.min(98, Math.max(82, Math.round(65 + totalKg / 120))),
+      capacity_util_pct_hl: Math.min(95, Math.max(78, Math.round(60 + totalKg / 140))),
+    })
+  }
+
+  const syntheticCurrentRoutes = proposedRoutes.map((route) => ({
+    ...route,
+    id: route.id.replace("opt-", "cur-"),
+    estimated_km: Math.round(route.estimated_km * 1.14 * 10) / 10,
+    estimated_time_min: Math.round(route.estimated_time_min * 1.12),
+    capacity_util_pct: Math.max(55, route.capacity_util_pct - 12),
+    capacity_util_pct_hl: Math.max(50, route.capacity_util_pct_hl - 10),
+  }))
+
+  return { currentRoutes: syntheticCurrentRoutes, proposedRoutes }
+}
+
+function calculateKpisForRoutes(dayRoutes: Route[]): KpiSummary {
+  const totalKm = dayRoutes.reduce((sum, r) => sum + r.estimated_km, 0)
+  const totalTime = dayRoutes.reduce((sum, r) => sum + r.estimated_time_min, 0)
+  const totalCustomers = new Set(dayRoutes.flatMap((r) => r.stops.map((s) => s.customer_id))).size
+
+  const avgCapacity =
+    dayRoutes.length > 0 ? dayRoutes.reduce((sum, r) => sum + r.capacity_util_pct, 0) / dayRoutes.length : 0
+  const avgCapacityHL =
+    dayRoutes.length > 0
+      ? dayRoutes.reduce((sum, r) => sum + (typeof r.capacity_util_pct_hl === "number" ? r.capacity_util_pct_hl : 0), 0) /
+        dayRoutes.length
+      : 0
+
+  return {
+    total_routes: dayRoutes.length,
+    total_customers: totalCustomers,
+    avg_capacity_util: Math.round(avgCapacity),
+    total_km: Math.round(totalKm * 10) / 10,
+    total_time_hours: Math.round((totalTime / 60) * 10) / 10,
+    avg_capacity_util_hl: Math.round(avgCapacityHL),
+  }
+}
+
+function computeEfficiencyHlKm(routeList: Route[], centerCustomers: Customer[]): number {
+  const totalKm = routeList.reduce((sum, route) => sum + route.estimated_km, 0)
+  if (totalKm <= 0) return 0
+
+  const deliveredHl = centerCustomers.reduce((sum, customer) => {
+    const delivered = customer.delivery_history?.reduce((acc, delivery) => acc + (delivery.delivered_hl || 0), 0) ?? 0
+    return sum + delivered
+  }, 0)
+
+  return deliveredHl > 0 ? deliveredHl / totalKm : 0
+}
+
 export const dataService = {
   getCenters(): Center[] {
     return centers
@@ -119,100 +271,14 @@ export const dataService = {
 
   simulateRoutes(request: SimulationRequest): SimulationResult {
     const { center_id, date } = request
-
-    // Simple greedy clustering algorithm
-    const selectedCustomers = customers.filter((c) => c.center_id === center_id)
     const center = centers.find((c) => c.id === center_id)
-
     if (!center) {
       throw new Error("Center not found")
     }
 
-    // Group customers into exactly 10 routes with 10-15 stops each
-    const proposedRoutes: Route[] = []
-    const targetRoutes = 10
-    const minStopsPerRoute = 10
-    const maxStopsPerRoute = 15
-    
-    // Calculate total stops needed and distribute customers accordingly
-    const totalCustomers = selectedCustomers.length
-    const targetStopsPerRoute = Math.max(minStopsPerRoute, Math.min(maxStopsPerRoute, Math.floor(totalCustomers / targetRoutes)))
-
-    for (let routeIndex = 0; routeIndex < targetRoutes; routeIndex++) {
-      // Determine stops for this route (between 10-15)
-      const stopsForThisRoute = Math.min(
-        Math.max(minStopsPerRoute, targetStopsPerRoute + Math.floor(Math.random() * 3) - 1), // ±1 variation
-        maxStopsPerRoute,
-        totalCustomers - (routeIndex * targetStopsPerRoute) // Don't exceed remaining customers
-      )
-      
-      const startIndex = routeIndex * targetStopsPerRoute
-      const endIndex = Math.min(startIndex + stopsForThisRoute, totalCustomers)
-      const routeCustomers = selectedCustomers.slice(startIndex, endIndex)
-      
-      if (routeCustomers.length === 0) break
-
-      const currentStops: Route["stops"] = []
-
-      routeCustomers.forEach((customer, idx) => {
-        currentStops.push({
-          customer_id: customer.id,
-          sequence: idx + 1,
-          estimated_arrival: `${8 + Math.floor((routeIndex * 4 + idx * 0.5) % 12)}:${((routeIndex * 15 + idx * 30) % 60).toString().padStart(2, '0')}`,
-          estimated_duration_min: 10 + Math.floor(customer.avg_order_kg / 50),
-          order_kg: customer.avg_order_kg,
-          order_hl: customer.avg_order_hl,
-        })
-      })
-
-      // Calculate time to be between 4-8 hours (240-480 minutes)
-      const minTimeMinutes = 240 // 4 hours
-      const maxTimeMinutes = 480 // 8 hours
-      const estimatedTime = minTimeMinutes + Math.random() * (maxTimeMinutes - minTimeMinutes)
-      
-      // Calculate distance based on time (approximate 1 km per 3 minutes including stops)
-      const estimatedKm = (estimatedTime / 3) + Math.random() * 10
-      
-      // Ensure capacity utilization is between 90-100%
-      const targetCapacityPct = 90 + Math.random() * 10 // 90-100%
-
-      proposedRoutes.push({
-        id: `sim-route-${(routeIndex + 1).toString().padStart(2, '0')}`,
-        center_id,
-        vehicle_id: `vehicle-sim-${routeIndex + 1}`,
-        date,
-        status: "planned",
-        stops: currentStops,
-        estimated_km: Math.round(estimatedKm * 10) / 10,
-        estimated_time_min: Math.round(estimatedTime),
-        capacity_util_pct: Math.round(targetCapacityPct),
-        capacity_util_pct_hl: Math.round(targetCapacityPct * 0.95), // Keep HL for internal calculations but won't be displayed
-      })
-    }
-
-    // Calculate KPIs - ensure we always show optimization with 10 routes
-    const totalKm = proposedRoutes.reduce((sum, r) => sum + r.estimated_km, 0)
-    const totalTime = proposedRoutes.reduce((sum, r) => sum + r.estimated_time_min, 0)
-    const avgCapacity = proposedRoutes.length > 0 ? proposedRoutes.reduce((sum, r) => sum + r.capacity_util_pct, 0) / proposedRoutes.length : 0
-
-    const proposedKpis: KpiSummary = {
-      total_routes: 10, // Always 10 optimized routes
-      total_customers: selectedCustomers.length,
-      avg_capacity_util: Math.round(avgCapacity),
-      total_km: Math.round(totalKm * 10) / 10,
-      total_time_hours: Math.round((totalTime / 60) * 10) / 10,
-      avg_capacity_util_hl: Math.round(avgCapacity * 0.95), // Keep for compatibility but won't be displayed
-    }
-
-    // Mock current KPIs (less efficient with more routes)
-    const currentKpis: KpiSummary = {
-      total_routes: 12, // Current has more routes
-      total_customers: selectedCustomers.length,
-      avg_capacity_util: Math.round(avgCapacity * 0.75), // Much lower capacity utilization (75% of optimized)
-      total_km: Math.round(totalKm * 1.18 * 10) / 10, // More kilometers
-      total_time_hours: Math.round((totalTime / 60) * 1.15 * 10) / 10, // More time
-      avg_capacity_util_hl: Math.round(avgCapacity * 0.72), // Keep for compatibility
-    }
+    const { currentRoutes, proposedRoutes } = buildOptimizedRoutes(center_id, date)
+    const currentKpis = calculateKpisForRoutes(currentRoutes)
+    const proposedKpis = calculateKpisForRoutes(proposedRoutes)
 
     return {
       proposed_routes: proposedRoutes,
@@ -252,22 +318,183 @@ export const dataService = {
     }
   },
 
-  async simulateCompliance(centerId: string): Promise<ComplianceSimulationResult> {
-    // Simulate processing delay
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    const center = centers.find(c => c.id === centerId)
+  async simulateCompliance(centerId: string, date = "2025-01-10"): Promise<ComplianceSimulationResult> {
+    await new Promise((resolve) => setTimeout(resolve, 1200))
+
+    const center = centers.find((c) => c.id === centerId)
     if (!center) {
       throw new Error("Center not found")
     }
 
-    // Get customers for this center
-    const centerCustomers = customers.filter(c => c.center_id === centerId)
-    
-    // Generate mock compliance analysis
-    const nonCompliantClients = this.generateNonCompliantClients(centerCustomers)
-    const optimizationSuggestions = this.generateOptimizationSuggestions()
-    
+    const centerCustomers = customers.filter((c) => c.center_id === centerId)
+    const { currentRoutes, proposedRoutes } = buildOptimizedRoutes(centerId, date)
+
+    const nonCompliantClients: NonCompliantClient[] = centerCustomers
+      .map((customer) => {
+        const deliveryHistory = customer.delivery_history || []
+        const totalDeliveries = deliveryHistory.length
+        const successfulDeliveries = deliveryHistory.filter((d) => d.status === "delivered" && d.delivered_hl > 0).length
+        const failedDeliveries = Math.max(0, totalDeliveries - successfulDeliveries)
+        const successRate = totalDeliveries > 0 ? (successfulDeliveries / totalDeliveries) * 100 : 0
+
+        const avgFrequencyDays = getAverageFrequencyDays(deliveryHistory)
+        const targetFrequencyDays = FREQUENCY_DAYS[customer.frequency]
+        const avgDeliveryHour =
+          deliveryHistory.length > 0
+            ? deliveryHistory.reduce((sum, d) => sum + toHourNumber(d.delivery_time), 0) / deliveryHistory.length
+            : 12
+        const avgDeliveryDelayHours = Math.max(0, avgDeliveryHour - 9.5)
+
+        const issues: ComplianceIssue[] = []
+
+        if (successRate < 90) {
+          issues.push({
+            type: "delivery_success",
+            severity: successRate < 75 ? "high" : "medium",
+            description: `Bajo cumplimiento de entrega: ${successRate.toFixed(1)}% de entregas exitosas.`,
+            impact: "Afecta continuidad operativa del cliente y eleva costos por reintentos.",
+            metric_value: Number(successRate.toFixed(1)),
+            target_value: 95,
+          })
+        }
+
+        if (avgFrequencyDays > 0 && avgFrequencyDays > targetFrequencyDays * 1.25) {
+          issues.push({
+            type: "frequency",
+            severity: avgFrequencyDays > targetFrequencyDays * 1.6 ? "high" : "medium",
+            description: `Frecuencia insuficiente: promedio ${avgFrequencyDays.toFixed(1)} dias vs objetivo ${targetFrequencyDays} dias.`,
+            impact: "Incrementa riesgo de quiebre de inventario y pedidos urgentes.",
+            metric_value: Number(avgFrequencyDays.toFixed(1)),
+            target_value: targetFrequencyDays,
+          })
+        }
+
+        if (avgDeliveryDelayHours > 2) {
+          issues.push({
+            type: "delivery_time",
+            severity: avgDeliveryDelayHours > 4 ? "high" : "medium",
+            description: `Retrasos en ventana de entrega: ${avgDeliveryDelayHours.toFixed(1)} horas promedio.`,
+            impact: "Reduce puntualidad de servicio y productividad del punto de entrega.",
+            metric_value: Number(avgDeliveryDelayHours.toFixed(1)),
+            target_value: 2,
+          })
+        }
+
+        if (customer.priority === "high" && failedDeliveries >= 2) {
+          issues.push({
+            type: "capacity",
+            severity: "medium",
+            description: `Cliente prioritario con ${failedDeliveries} entregas no completadas.`,
+            impact: "Requiere ajuste de capacidad/ruta para evitar incumplimientos recurrentes.",
+            metric_value: failedDeliveries,
+            target_value: 0,
+          })
+        }
+
+        const sortedHistory = [...deliveryHistory].sort((a, b) => b.date.localeCompare(a.date))
+
+        return {
+          customer,
+          issues,
+          current_metrics: {
+            delivery_success_rate: Number(successRate.toFixed(1)),
+            avg_delivery_frequency_days: Number(avgFrequencyDays.toFixed(1)),
+            avg_delivery_delay_hours: Number(avgDeliveryDelayHours.toFixed(1)),
+            last_delivery_date: sortedHistory[0]?.date || date,
+          },
+          target_metrics: {
+            delivery_success_rate: 95,
+            target_frequency_days: targetFrequencyDays,
+            max_delivery_delay_hours: 2,
+          },
+        }
+      })
+      .filter((item) => item.issues.length > 0)
+
+    const optimizationSuggestions: OptimizationSuggestion[] = nonCompliantClients.flatMap((client, idx) => {
+      const routeForCustomer = currentRoutes.find((route) => route.stops.some((stop) => stop.customer_id === client.customer.id))
+
+      return client.issues.map((issue, issueIdx) => {
+        const type: OptimizationSuggestion["type"] =
+          issue.type === "frequency"
+            ? "frequency_increase"
+            : issue.type === "delivery_time"
+              ? "schedule_adjustment"
+              : issue.type === "capacity"
+                ? "vehicle_reassignment"
+                : "route_change"
+
+        const severityMultiplier = issue.severity === "high" ? 1.2 : issue.severity === "critical" ? 1.35 : 1
+        const baseBenefit = Math.max(4, Math.min(25, (issue.target_value - issue.metric_value) * 0.7))
+
+        return {
+          id: `opt-${client.customer.id}-${idx + 1}-${issueIdx + 1}`,
+          client_id: client.customer.id,
+          type,
+          description: `Accion recomendada para ${client.customer.name}: ${issue.description}`,
+          implementation_cost: Math.round((400 + issueIdx * 120 + idx * 35) * severityMultiplier),
+          affected_routes: routeForCustomer ? [routeForCustomer.id] : [],
+          expected_benefit: {
+            delivery_success_improvement: Number((baseBenefit * 0.9).toFixed(1)),
+            frequency_alignment: Number((issue.type === "frequency" ? baseBenefit : baseBenefit * 0.45).toFixed(1)),
+            time_reduction_hours: Number((issue.type === "delivery_time" ? 1.2 : 0.6).toFixed(1)),
+            efficiency_hl_km: Number((0.2 + baseBenefit * 0.05).toFixed(2)),
+          },
+          validation_status: issue.severity === "high" || issue.severity === "critical" ? "needs_review" : "validated",
+        }
+      })
+    })
+
+    const allSuccessRates = centerCustomers.map((customer) => {
+      const history = customer.delivery_history || []
+      const success = history.filter((d) => d.status === "delivered" && d.delivered_hl > 0).length
+      return history.length > 0 ? (success / history.length) * 100 : 0
+    })
+
+    const allFrequencyAdherence = centerCustomers.map((customer) => {
+      const avgDays = getAverageFrequencyDays(customer.delivery_history)
+      const target = FREQUENCY_DAYS[customer.frequency]
+      if (avgDays <= 0) return 0
+      return Math.min(100, (target / Math.max(target, avgDays)) * 100)
+    })
+
+    const allTimePerformance = centerCustomers.map((customer) => {
+      const history = customer.delivery_history || []
+      if (history.length === 0) return 0
+      const avgHour = history.reduce((sum, d) => sum + toHourNumber(d.delivery_time), 0) / history.length
+      const delay = Math.max(0, avgHour - 9.5)
+      return Math.max(0, 100 - delay * 12)
+    })
+
+    const avg = (values: number[]) => (values.length > 0 ? values.reduce((sum, value) => sum + value, 0) / values.length : 0)
+    const beforeComplianceRate = centerCustomers.length > 0 ? ((centerCustomers.length - nonCompliantClients.length) / centerCustomers.length) * 100 : 0
+    const beforeSuccessRate = avg(allSuccessRates)
+    const beforeFrequencyAdherence = avg(allFrequencyAdherence)
+    const beforeTimePerformance = avg(allTimePerformance)
+    const beforeEfficiency = computeEfficiencyHlKm(currentRoutes, centerCustomers)
+
+    const deliverySuccessGain = Math.min(18, 3 + optimizationSuggestions.length * 0.9)
+    const frequencyGain = Math.min(24, 4 + optimizationSuggestions.length * 1.1)
+    const onTimeGain = Math.min(14, 2 + optimizationSuggestions.length * 0.7)
+    const efficiencyGain = Math.min(1.8, 0.25 + optimizationSuggestions.length * 0.08)
+
+    const afterSuccessRate = Math.min(98, beforeSuccessRate + deliverySuccessGain)
+    const afterFrequencyAdherence = Math.min(98, beforeFrequencyAdherence + frequencyGain)
+    const afterTimePerformance = Math.min(98, beforeTimePerformance + onTimeGain)
+    const afterEfficiency = beforeEfficiency + efficiencyGain
+
+    const improvedNonCompliant = Math.round(nonCompliantClients.length * 0.72)
+    const afterCompliantClients = Math.min(centerCustomers.length, centerCustomers.length - nonCompliantClients.length + improvedNonCompliant)
+    const afterComplianceRate = centerCustomers.length > 0 ? (afterCompliantClients / centerCustomers.length) * 100 : 0
+
+    const warnings: string[] = []
+    if (optimizationSuggestions.filter((s) => s.validation_status === "needs_review").length > 0) {
+      warnings.push("Algunas sugerencias requieren revision operativa antes de su despliegue.")
+    }
+    if (nonCompliantClients.length === 0) {
+      warnings.push("No se detectaron clientes no cubiertos en la muestra actual.")
+    }
+
     return {
       non_compliant_clients: nonCompliantClients,
       optimization_suggestions: optimizationSuggestions,
@@ -275,39 +502,39 @@ export const dataService = {
         before: {
           total_clients: centerCustomers.length,
           compliant_clients: centerCustomers.length - nonCompliantClients.length,
-          compliance_rate: ((centerCustomers.length - nonCompliantClients.length) / centerCustomers.length) * 100,
-          avg_delivery_success_rate: 78.3,
-          avg_frequency_adherence: 65.0,
-          avg_delivery_time_performance: 82.5,
-          avg_hl_km_efficiency: 2.1
+          compliance_rate: Number(beforeComplianceRate.toFixed(1)),
+          avg_delivery_success_rate: Number(beforeSuccessRate.toFixed(1)),
+          avg_frequency_adherence: Number(beforeFrequencyAdherence.toFixed(1)),
+          avg_delivery_time_performance: Number(beforeTimePerformance.toFixed(1)),
+          avg_hl_km_efficiency: Number(beforeEfficiency.toFixed(2)),
         },
         after: {
           total_clients: centerCustomers.length,
-          compliant_clients: Math.min(centerCustomers.length, Math.round(centerCustomers.length * 0.95)),
-          compliance_rate: 95.0,
-          avg_delivery_success_rate: 92.8,
-          avg_frequency_adherence: 88.5,
-          avg_delivery_time_performance: 94.2,
-          avg_hl_km_efficiency: 3.2
+          compliant_clients: afterCompliantClients,
+          compliance_rate: Number(afterComplianceRate.toFixed(1)),
+          avg_delivery_success_rate: Number(afterSuccessRate.toFixed(1)),
+          avg_frequency_adherence: Number(afterFrequencyAdherence.toFixed(1)),
+          avg_delivery_time_performance: Number(afterTimePerformance.toFixed(1)),
+          avg_hl_km_efficiency: Number(afterEfficiency.toFixed(2)),
         },
         improvements: {
-          delivery_success_rate_change: 14.5,
-          efficiency_improvement_hl_km: 1.1,
-          frequency_compliance_improvement: 23.5,
-          on_time_delivery_improvement: 11.7
-        }
+          delivery_success_rate_change: Number((afterSuccessRate - beforeSuccessRate).toFixed(1)),
+          efficiency_improvement_hl_km: Number((afterEfficiency - beforeEfficiency).toFixed(2)),
+          frequency_compliance_improvement: Number((afterFrequencyAdherence - beforeFrequencyAdherence).toFixed(1)),
+          on_time_delivery_improvement: Number((afterTimePerformance - beforeTimePerformance).toFixed(1)),
+        },
       },
-      proposed_routes: routes.slice(0, 3), // Mock some routes
+      proposed_routes: proposedRoutes,
       affected_compliant_clients: [],
       validation_results: {
-        no_negative_impact: true,
-        warnings: [],
+        no_negative_impact: warnings.length === 0,
+        warnings,
         recommendations: [
-          'Implement route optimization first as it has the highest ROI',
-          'Monitor customer satisfaction scores after schedule adjustments',
-          'Consider phased implementation to minimize disruption'
-        ]
-      }
+          "Implementar primero ajustes de ruta para clientes de prioridad alta.",
+          "Revisar ventanas de entrega para clientes con baja puntualidad historica.",
+          "Monitorear semanalmente el cumplimiento de frecuencia por segmento.",
+        ],
+      },
     }
   },
 
