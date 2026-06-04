@@ -62,11 +62,48 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
 
   const getSuggestionTypeLabel = (type: string) => {
     switch (type) {
+      case 'route_change': return 'Cambio de ruta'
+      case 'vehicle_reassignment': return 'Reasignacion de vehiculo'
       case 'route_reassignment': return 'reasignación de ruta'
       case 'schedule_adjustment': return 'ajuste de horario'
       case 'frequency_optimization': return 'optimización de frecuencia'
+      case 'frequency_increase': return 'Aumento de frecuencia'
       case 'capacity_rebalance': return 'reequilibrio de capacidad'
       default: return type.replace('_', ' ')
+    }
+  }
+
+  const getSuggestionTypeClass = (type: string) => {
+    switch (type) {
+      case 'route_change':
+      case 'route_reassignment':
+        return 'border-blue-700 bg-blue-600 text-white'
+      case 'vehicle_reassignment':
+        return 'border-indigo-700 bg-indigo-600 text-white'
+      case 'schedule_adjustment':
+        return 'border-amber-700 bg-amber-600 text-white'
+      case 'frequency_optimization':
+      case 'frequency_increase':
+        return 'border-emerald-700 bg-emerald-600 text-white'
+      case 'capacity_rebalance':
+        return 'border-violet-700 bg-violet-600 text-white'
+      default:
+        return 'border-slate-600 bg-slate-500 text-white'
+    }
+  }
+
+  const getSuggestionReason = (suggestion: OptimizationSuggestion) => {
+    switch (suggestion.type) {
+      case 'vehicle_reassignment':
+        return 'Se detecto desbalance de carga/capacidad en la ruta actual. Reasignar vehiculo mejora cumplimiento y reduce riesgo de fallas.'
+      case 'route_change':
+        return 'La secuencia o asignacion de ruta actual genera ineficiencia operativa. Ajustarla reduce distancia y tiempo de servicio.'
+      case 'schedule_adjustment':
+        return 'Existen entregas fuera de ventana horaria. Ajustar horario mejora puntualidad y tasa de exito.'
+      case 'frequency_increase':
+        return 'La frecuencia de visita actual no cubre la demanda esperada. Incrementarla mejora continuidad de abastecimiento.'
+      default:
+        return 'La sugerencia se genera para mejorar cobertura, puntualidad y eficiencia operacional.'
     }
   }
 
@@ -185,16 +222,7 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
         >
           Soluciones de Optimización
         </button>
-        <button
-          onClick={() => setActiveTab('validation')}
-          className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-            activeTab === 'validation' 
-              ? 'bg-background text-foreground shadow-sm' 
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          Validación de Impacto
-        </button>
+
       </div>
 
       {/* Tab Content */}
@@ -276,10 +304,17 @@ export function ComplianceAnalysis({ result, onViewMap, onApplySuggestions }: Co
               <CardContent className="pt-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
+                    <div className="mb-2">
+                      <Badge className={`border px-2.5 py-1 text-xs font-semibold uppercase tracking-wide ${getSuggestionTypeClass(suggestion.type)}`}>
+                        {getSuggestionTypeLabel(suggestion.type)}
+                      </Badge>
+                    </div>
                     <h4 className="font-medium">{suggestion.description}</h4>
+                    <p className="mt-1 text-sm text-foreground/90">
+                      <span className="font-medium">Motivo:</span> {getSuggestionReason(suggestion)}
+                    </p>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Tipo: {getSuggestionTypeLabel(suggestion.type)} • 
-                      Kg/Km: {suggestion.expected_benefit.efficiency_hl_km.toFixed(2)}
+                      Eficiencia esperada Kg/Km: {suggestion.expected_benefit.efficiency_hl_km.toFixed(2)}
                     </p>
                   </div>
                   <Badge 
