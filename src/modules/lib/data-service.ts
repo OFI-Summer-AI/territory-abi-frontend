@@ -223,7 +223,44 @@ export const dataService = {
   },
 
   getRoute(id: string): (Route & { center: Center }) | null {
-    const route = routes.find((r) => r.id === id)
+    const exactRoute = routes.find((r) => r.id === id)
+
+    let route: Route | undefined = exactRoute
+
+    if (!route && id.startsWith("opt-")) {
+      const directBaseId = id.replace(/^opt-/, "")
+      const directBaseRoute = routes.find((r) => r.id === directBaseId)
+
+      const paddedMatch = id.match(/^opt-route-(\d{2})$/)
+      const paddedBaseRoute = paddedMatch
+        ? routes.find((r) => r.id === `route-${Number(paddedMatch[1])}`)
+        : undefined
+
+      const indexBaseRoute = paddedMatch
+        ? routes.filter((r) => r.date === "2025-01-10").sort((a, b) => a.id.localeCompare(b.id))[Number(paddedMatch[1]) - 1]
+        : undefined
+
+      const baseRoute = directBaseRoute ?? paddedBaseRoute ?? indexBaseRoute
+
+      if (baseRoute) {
+        route = {
+          ...baseRoute,
+          id,
+          status: "planned",
+          estimated_km: Math.round(baseRoute.estimated_km * 0.9 * 10) / 10,
+          estimated_time_min: Math.round(baseRoute.estimated_time_min * 0.88),
+          capacity_util_pct: Math.min(98, Math.max(85, baseRoute.capacity_util_pct + 8)),
+          capacity_util_pct_hl: Math.min(98, Math.max(80, baseRoute.capacity_util_pct_hl + 8)),
+          stops: [...baseRoute.stops]
+            .sort((a, b) => (b.order_kg ?? 0) - (a.order_kg ?? 0))
+            .map((stop, index) => ({
+              ...stop,
+              sequence: index + 1,
+            })),
+        }
+      }
+    }
+
     if (!route) return null
 
     const enrichedStops = route.stops.map((stop) => {

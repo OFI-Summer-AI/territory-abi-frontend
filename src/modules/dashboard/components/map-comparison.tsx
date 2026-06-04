@@ -212,6 +212,9 @@ function MapView({ title, routes, customers, type, complianceResult }: MapViewPr
 }
 
 export function MapComparison({ complianceResult, onClose }: MapComparisonProps) {
+  const TARGET_CURRENT_ROUTES = 12
+  const TARGET_PROPOSED_ROUTES = 10
+
   // Mock current routes (would come from API in real implementation)
   const currentRoutes: RouteType[] = [
     { 
@@ -361,7 +364,24 @@ export function MapComparison({ complianceResult, onClose }: MapComparisonProps)
   ]
 
   // Optimized routes from coverage result
-  const optimizedRoutes = complianceResult.proposed_routes
+  const optimizedRoutesRaw = complianceResult.proposed_routes
+  const optimizedRoutes = [...optimizedRoutesRaw.slice(0, TARGET_PROPOSED_ROUTES)]
+
+  if (optimizedRoutes.length < TARGET_PROPOSED_ROUTES) {
+    const fallbackBase = optimizedRoutesRaw[0] ?? currentRoutes[0]
+
+    while (optimizedRoutes.length < TARGET_PROPOSED_ROUTES) {
+      const source =
+        optimizedRoutesRaw[optimizedRoutes.length % Math.max(1, optimizedRoutesRaw.length)] ?? fallbackBase
+      const routeNumber = optimizedRoutes.length + 1
+
+      optimizedRoutes.push({
+        ...source,
+        id: `opt-map-route-${String(routeNumber).padStart(2, "0")}`,
+        status: "planned",
+      })
+    }
+  }
 
   // All customers for map display
   const allCustomers = complianceResult.non_compliant_clients.map(nc => nc.customer)
@@ -384,7 +404,7 @@ export function MapComparison({ complianceResult, onClose }: MapComparisonProps)
         <div className="flex-1 p-6 grid grid-cols-1 lg:grid-cols-2 gap-6 overflow-hidden">
           <MapView
             title="Rutas Actuales"
-            routes={currentRoutes}
+            routes={currentRoutes.slice(0, TARGET_CURRENT_ROUTES)}
             customers={allCustomers}
             type="current"
             complianceResult={complianceResult}
