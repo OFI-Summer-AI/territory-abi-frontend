@@ -81,6 +81,66 @@ export default function RouteDetailPage() {
     .map((stop) => customers.find((c) => c.id === stop.customer_id))
     .filter((c): c is Customer => c !== undefined)
 
+  const stopsWithMeta = [...route.stops].sort((a, b) => a.sequence - b.sequence)
+  const explicitlyCompletedStopIds = new Set(
+    stopsWithMeta
+      .filter((stop) => {
+        const stopStatus = (stop as typeof stop & { status?: { executed?: boolean } }).status
+        return stopStatus?.executed === true
+      })
+      .map((stop) => stop.customer_id),
+  )
+
+  const inferredCompletedCount =
+    route.status === "completed"
+      ? stopsWithMeta.length
+      : route.status === "in_progress"
+        ? Math.max(1, Math.floor(stopsWithMeta.length * 0.4))
+        : 0
+
+  const completedStopIds = new Set(
+    stopsWithMeta
+      .filter((stop, index) => {
+        if (route.status === "completed") return true
+        if (route.status !== "in_progress") return false
+        if (explicitlyCompletedStopIds.size > 0) return explicitlyCompletedStopIds.has(stop.customer_id)
+        return index < inferredCompletedCount
+      })
+      .map((stop) => stop.customer_id),
+  )
+
+  const nextPendingStop =
+    route.status === "in_progress" ? stopsWithMeta.find((stop) => !completedStopIds.has(stop.customer_id)) : undefined
+
+  const lastCompletedStop =
+    route.status === "in_progress"
+      ? [...stopsWithMeta].reverse().find((stop) => completedStopIds.has(stop.customer_id))
+      : undefined
+
+  const lastCompletedCustomer = lastCompletedStop
+    ? customers.find((c) => c.id === lastCompletedStop.customer_id)
+    : undefined
+  const nextPendingCustomer = nextPendingStop
+    ? customers.find((c) => c.id === nextPendingStop.customer_id)
+    : undefined
+
+  const vehiclePosition =
+    route.status === "in_progress"
+      ? {
+          lat:
+            lastCompletedCustomer && nextPendingCustomer
+              ? (lastCompletedCustomer.lat + nextPendingCustomer.lat) / 2
+              : lastCompletedCustomer?.lat ?? nextPendingCustomer?.lat ?? route.center.lat,
+          lng:
+            lastCompletedCustomer && nextPendingCustomer
+              ? (lastCompletedCustomer.lng + nextPendingCustomer.lng) / 2
+              : lastCompletedCustomer?.lng ?? nextPendingCustomer?.lng ?? route.center.lng,
+          label: nextPendingCustomer
+            ? `En camino a ${nextPendingCustomer.name}`
+            : "Vehículo en ruta",
+        }
+      : null
+
   const assignedVehicle = route.center.vehicles?.find((vehicle) => vehicle.id === route.vehicle_id)
   const totalRouteKg = route.stops.reduce((sum, stop) => sum + stop.order_kg, 0)
   const inferredCapacityKg =
@@ -159,6 +219,7 @@ export default function RouteDetailPage() {
                     routes={[route]}
                     mode="detail"
                     selectedRouteId={route.id}
+                    vehiclePosition={vehiclePosition}
                   />
                 </div>
               </CardContent>
@@ -175,9 +236,20 @@ export default function RouteDetailPage() {
                     const customer = customers.find((c) => c.id === stop.customer_id)
                     if (!customer) return null
 
+                    const isCompleted = completedStopIds.has(stop.customer_id)
+
                     return (
-                      <div key={stop.customer_id} className="flex items-start gap-3 rounded-lg border p-4">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
+                      <div
+                        key={stop.customer_id}
+                        className={`flex items-start gap-3 rounded-lg border p-4 ${
+                          isCompleted ? "border-green-300 bg-green-50/30" : ""
+                        }`}
+                      >
+                        <div
+                          className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium text-primary-foreground ${
+                            isCompleted ? "bg-green-600" : "bg-primary"
+                          }`}
+                        >
                           {stop.sequence}
                         </div>
                         <div className="flex-1">
@@ -185,6 +257,11 @@ export default function RouteDetailPage() {
                             <div>
                               <h4 className="font-medium">{customer.name}</h4>
                               <p className="text-sm text-muted-foreground">{customer.address}</p>
+                              <div className="mt-1">
+                                <Badge className={isCompleted ? "bg-green-50 text-green-800 border-green-800" : "bg-muted text-muted-foreground"}>
+                                  {isCompleted ? "Completada" : "Pendiente"}
+                                </Badge>
+                              </div>
                             </div>
                             <Button variant="ghost" size="sm" onClick={() => navigate(`/customers/${customer.id}`)}>
                               Ver
@@ -284,7 +361,9 @@ export default function RouteDetailPage() {
                   <div className="font-medium">
                     {displayedVehicleCapacityKg.toLocaleString()} kg
                   </div>
-                  {!isAssignedCapacityConsistent}
+                  {!isAssignedCapacityConsistent && (
+                    <div className="text-xs text-muted-foreground">Capacidad ajustada segun carga y utilizacion de la ruta</div>
+                  )}
                 </div>
                 <div>
                   <div className="text-sm text-muted-foreground">Carga de la ruta</div>

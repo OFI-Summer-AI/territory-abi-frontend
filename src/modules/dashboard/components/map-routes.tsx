@@ -8,6 +8,11 @@ interface MapRoutesProps {
   mode?: "overview" | "detail"
   selectedRouteId?: string | null
   onRouteClick?: (routeId: string) => void
+  vehiclePosition?: {
+    lat: number
+    lng: number
+    label?: string
+  } | null
 }
 
 // Cache for OSRM routes
@@ -63,6 +68,7 @@ export function MapRoutes({
   mode: _mode = "overview",
   selectedRouteId,
   onRouteClick,
+  vehiclePosition,
 }: MapRoutesProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<any>(null)
@@ -187,6 +193,37 @@ export function MapRoutes({
             `)
           markersRef.current.push(marker)
         })
+
+        if (vehiclePosition) {
+          const vehicleIcon = L.divIcon({
+            className: "custom-vehicle-icon",
+            html: `<div style="
+              background: linear-gradient(135deg, #111827 0%, #374151 100%);
+              width: 30px;
+              height: 30px;
+              border-radius: 9999px;
+              border: 3px solid #ffffff;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 14px;
+            " class="marker-pulse">🚚</div>`,
+            iconSize: [30, 30],
+            iconAnchor: [15, 15],
+          })
+
+          const vehicleMarker = L.marker([vehiclePosition.lat, vehiclePosition.lng], { icon: vehicleIcon })
+            .addTo(map)
+            .bindPopup(`
+              <div style="font-family: system-ui; padding: 4px;">
+                <div style="font-weight: bold; font-size: 13px; margin-bottom: 4px;">🚚 Vehículo en ruta</div>
+                <div style="color: #4b5563; font-size: 12px;">${vehiclePosition.label ?? "Ubicación estimada en tiempo real"}</div>
+              </div>
+            `)
+
+          markersRef.current.push(vehicleMarker)
+        }
 
         polylinesRef.current.clear()
         setLoadingRoutes(true)
@@ -402,7 +439,7 @@ export function MapRoutes({
       markersRef.current = []
       document.head.removeChild(style)
     }
-  }, [centers, customers, routes, selectedRouteId, onRouteClick])
+  }, [centers, customers, routes, selectedRouteId, onRouteClick, vehiclePosition])
 
   return (
     <div className="relative h-full w-full">
@@ -432,6 +469,12 @@ export function MapRoutes({
             <div className="text-blue-500 text-lg">▲</div>
             <span>Dirección de ruta</span>
           </div>
+          {vehiclePosition && (
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-gray-800 text-white flex items-center justify-center text-xs">🚚</div>
+              <span>Vehículo en progreso</span>
+            </div>
+          )}
         </div>
       </div>
 
