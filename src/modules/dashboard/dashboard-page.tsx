@@ -7,7 +7,7 @@ import { Checkbox } from "@/shared/ui/checkbox"
 import { Label } from "@/shared/ui/label"
 import { getAllCustomers, getRoutes, getKpis } from "@/modules/lib/api"
 import type { Customer, Route, KpiSummary } from "@/modules/lib/types"
-import { Map, Truck, Users, Gauge, Clock, Package, DollarSign, PiggyBank, ChevronDown, ChevronUp } from "lucide-react"
+import { Map, Truck, Users, Gauge, Clock, Package, DollarSign, ChevronDown, ChevronUp } from "lucide-react"
 import {
   Bar,
   BarChart,
@@ -124,8 +124,6 @@ export default function DashboardPage() {
     costoPromedioPorKmPeriodoAnterior > 0
       ? ((costoPromedioPorKm - costoPromedioPorKmPeriodoAnterior) / costoPromedioPorKmPeriodoAnterior) * 100
       : 0
-  const ahorroPotencial = costoTotalEnvio * OBJETIVO_AHORRO
-
   const formatMoney = (value: number) =>
     new Intl.NumberFormat("es-CO", {
       style: "currency",
