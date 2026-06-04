@@ -288,7 +288,7 @@ export default function CustomerDetailPage() {
               />
               <KpiCard
                 label="Capacidad Prom. KG"
-                value={`${capacidadPromedioKg.toFixed(0)} kg`}
+                value={`${Math.round(capacidadPromedioKg).toLocaleString("es-CO")} kg`}
                 icon={<Gauge className="h-4 w-4" />}
               />
               <KpiCard

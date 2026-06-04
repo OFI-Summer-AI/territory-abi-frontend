@@ -373,7 +373,7 @@ export default function DashboardPage() {
               <KpiCard label="Total Clientes" value={kpis.total_customers} icon={<Users className="h-4 w-4" />} />
               <KpiCard
                 label="Capacidad Prom. KG"
-                value={`${capacidadPromedioKg.toFixed(0)} kg`}
+                value={`${Math.round(capacidadPromedioKg).toLocaleString("es-CO")} kg`}
                 icon={<Gauge className="h-4 w-4" />}
               />
               <KpiCard
