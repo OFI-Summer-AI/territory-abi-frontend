@@ -29,6 +29,9 @@ export function CustomerTable({ customers, onView }: CustomerTableProps) {
   const [priorityFilter, setPriorityFilter] = useState<"all" | Customer["priority"]>("all")
   const [frequencyFilter, setFrequencyFilter] = useState<"all" | Customer["frequency"]>("all")
 
+  const formatInteger = (value: number) =>
+    new Intl.NumberFormat("es-CO", { maximumFractionDigits: 0 }).format(value)
+
   
   const getEffectiveDeliveries = (customer: Customer) => {
     const totalDeliveries = customer.delivery_history?.length ?? 0
@@ -306,8 +309,8 @@ export function CustomerTable({ customers, onView }: CustomerTableProps) {
                 </TableCell>
                 <TableCell>
                   <div className="text-sm">
-                    <div className="text-green-600 font-medium">{deliveryStats.effective} efectivas</div>
-                    <div className="text-red-600">{deliveryStats.ineffective} inefectivas</div>
+                    <div className="text-green-600 font-medium">{formatInteger(deliveryStats.effective)} efectivas</div>
+                    <div className="text-red-600">{formatInteger(deliveryStats.ineffective)} inefectivas</div>
                   </div>
                 </TableCell>
                 <TableCell>
@@ -320,12 +323,12 @@ export function CustomerTable({ customers, onView }: CustomerTableProps) {
                         style={{ width: `${completionRate}%` }}
                       />
                     </div>
-                    <span className="text-sm text-muted-foreground">{completionRate}%</span>
+                    <span className="text-sm text-muted-foreground">{formatInteger(completionRate)}%</span>
                   </div>
                 </TableCell>
                 <TableCell>
-                  <div className="text-sm font-medium">{Math.round(totalKg).toLocaleString()} KG</div>
-                  <div className="text-xs text-muted-foreground">Promedio: {customer.avg_order_kg} KG</div>
+                  <div className="text-sm font-medium">{formatInteger(Math.round(totalKg))} KG</div>
+                  <div className="text-xs text-muted-foreground">Promedio: {formatInteger(customer.avg_order_kg)} KG</div>
                 </TableCell>
                 <TableCell>
                   <span className={ratioLogistico <= 45 ? "text-chart-2 font-medium" : "text-destructive font-medium"}>

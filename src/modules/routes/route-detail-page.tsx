@@ -162,6 +162,12 @@ export default function RouteDetailPage() {
       ? Math.min(100, route.capacity_util_pct)
       : Math.min(100, Math.round((totalRouteKg / displayedVehicleCapacityKg) * 100))
 
+  const formatInteger = (value: number) =>
+    new Intl.NumberFormat("es-CO", { maximumFractionDigits: 0 }).format(value)
+
+  const formatOneDecimal = (value: number) =>
+    new Intl.NumberFormat("es-CO", { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(value)
+
   const getVehicleTypeLabel = (type?: string) => {
     if (type === "truck") return "Camion"
     if (type === "motorcycle") return "Motocicleta"
@@ -303,23 +309,23 @@ export default function RouteDetailPage() {
               <CardContent className="space-y-4">
                 <div>
                   <div className="text-sm text-muted-foreground">Distancia Estimada</div>
-                  <div className="text-2xl font-bold">{route.estimated_km} km</div>
-                  {route.actual_km && <div className="text-sm text-muted-foreground">Real: {route.actual_km} km</div>}
+                  <div className="text-2xl font-bold">{formatOneDecimal(route.estimated_km)} km</div>
+                  {route.actual_km && <div className="text-sm text-muted-foreground">Real: {formatOneDecimal(route.actual_km)} km</div>}
                 </div>
 
                 <div>
                   <div className="text-sm text-muted-foreground">Tiempo Estimado</div>
-                  <div className="text-2xl font-bold">{Math.round(route.estimated_time_min / 60)} h</div>
+                  <div className="text-2xl font-bold">{formatOneDecimal(route.estimated_time_min / 60)} h</div>
                   {route.actual_time_min && (
                     <div className="text-sm text-muted-foreground">
-                      Real: {Math.round(route.actual_time_min / 60)} h
+                      Real: {formatOneDecimal(route.actual_time_min / 60)} h
                     </div>
                   )}
                 </div>
 
                 <div>
                   <div className="text-sm text-muted-foreground">Utilización de Capacidad KG</div>
-                  <div className="text-2xl font-bold">{route.capacity_util_pct}%</div>
+                  <div className="text-2xl font-bold">{formatInteger(route.capacity_util_pct)}%</div>
                   <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
                     <div className="h-full bg-blue-400" style={{ width: `${route.capacity_util_pct}%` }} />
                   </div>
@@ -327,13 +333,13 @@ export default function RouteDetailPage() {
                 <div>
                   <div className="text-sm text-muted-foreground">Peso Total</div>
                   <div className="text-2xl font-bold">
-                    {totalRouteKg} kg
+                    {formatInteger(totalRouteKg)} kg
                   </div>
                 </div>
                 
                 <div>
                   <div className="text-sm text-muted-foreground">Número de Paradas</div>
-                  <div className="text-2xl font-bold">{route.stops.length}</div>
+                  <div className="text-2xl font-bold">{formatInteger(route.stops.length)}</div>
                 </div>
 
 
@@ -359,7 +365,7 @@ export default function RouteDetailPage() {
                 <div>
                   <div className="text-sm text-muted-foreground">Capacidad del vehículo</div>
                   <div className="font-medium">
-                    {displayedVehicleCapacityKg.toLocaleString()} kg
+                    {formatInteger(displayedVehicleCapacityKg)} kg
                   </div>
                   {!isAssignedCapacityConsistent && (
                     <div className="text-xs text-muted-foreground">Capacidad ajustada segun carga y utilizacion de la ruta</div>
@@ -367,11 +373,11 @@ export default function RouteDetailPage() {
                 </div>
                 <div>
                   <div className="text-sm text-muted-foreground">Carga de la ruta</div>
-                  <div className="font-medium">{totalRouteKg.toLocaleString()} kg</div>
+                  <div className="font-medium">{formatInteger(totalRouteKg)} kg</div>
                 </div>
                 <div>
                   <div className="text-sm text-muted-foreground">Uso estimado del camión</div>
-                  <div className="font-medium">{displayedTruckUsagePct}%</div>
+                  <div className="font-medium">{formatInteger(displayedTruckUsagePct)}%</div>
                   <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
                     <div
                       className="h-full bg-blue-400"
@@ -397,7 +403,7 @@ export default function RouteDetailPage() {
                 </div>
                 <div>
                   <div className="text-sm text-muted-foreground">Capacidad KG</div>
-                  <div className="font-medium">{route.center.capacity_kg.toLocaleString()} kg</div>
+                  <div className="font-medium">{formatInteger(route.center.capacity_kg)} kg</div>
                 </div>
               </CardContent>
             </Card>

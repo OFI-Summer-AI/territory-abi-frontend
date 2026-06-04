@@ -26,6 +26,12 @@ export function RoutesTable({ routes, onView, onSimulate }: RoutesTableProps) {
   const [minTimeHoursFilter, setMinTimeHoursFilter] = useState("")
   const [minCapacityFilter, setMinCapacityFilter] = useState("")
 
+  const formatInteger = (value: number) =>
+    new Intl.NumberFormat("es-CO", { maximumFractionDigits: 0 }).format(value)
+
+  const formatOneDecimal = (value: number) =>
+    new Intl.NumberFormat("es-CO", { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(value)
+
   const getStatusColor = (status: Route["status"]) => {
     switch (status) {
       case "completed":
@@ -221,15 +227,15 @@ export function RoutesTable({ routes, onView, onSimulate }: RoutesTableProps) {
                   {getStatusLabel(route.status)}
                 </Badge>
               </TableCell>
-              <TableCell>{stops}</TableCell>
-              <TableCell>{distance} km</TableCell>
-              <TableCell>{timeHours.toFixed(1)} h</TableCell>
+              <TableCell>{formatInteger(stops)}</TableCell>
+              <TableCell>{formatOneDecimal(distance)} km</TableCell>
+              <TableCell>{formatOneDecimal(timeHours)} h</TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
                   <div className="h-2 w-20 overflow-hidden rounded-full bg-muted">
                     <div className="h-full bg-blue-400" style={{ width: `${capacity}%` }} />
                   </div>
-                  <span className="text-sm text-muted-foreground">{capacity}%</span>
+                  <span className="text-sm text-muted-foreground">{formatInteger(capacity)}%</span>
                 </div>
               </TableCell>
               <TableCell className="text-right">
