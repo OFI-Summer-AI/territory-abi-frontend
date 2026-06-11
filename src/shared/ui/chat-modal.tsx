@@ -27,15 +27,15 @@ Analizo rutas, clientes y KPIs operativos para ayudarte a tomar mejores decision
 
 const OPTION_1_REPLY = `Análisis de Rendimiento de Rutas — 10 Ene 2025
 
-Resumen de las 12 rutas activas del centro:
+Resumen de las 100 rutas activas del centro:
 
-• Utilización promedio: 78.4% de capacidad en kg
+• Utilización promedio: 64.2% de capacidad en kg
 • Mejor ruta: route-03 — 94% utilización, 23 paradas
-• Rutas de bajo rendimiento: 3 rutas con utilización < 70%
+• Rutas de bajo rendimiento: 13 rutas con utilización < 70%
 • Kilómetros totales: 847.2 km
-• Tiempo operativo total: 42.3 horas
+• Tiempo operativo total: 420.3 horas
 • Costo promedio por ruta: $2,340,000 COP
-• Costo promedio por km: $13,867 COP/km
+• Costo promedio por km: $15,627 COP/km
 
 Recomendación: Consolidar las 3 rutas con menor utilización puede reducir los costos operativos entre un 8 y 12%, ahorrando aproximadamente $1.8M COP por jornada. Puedes validar este escenario en el Simulador de Rutas.`
 
